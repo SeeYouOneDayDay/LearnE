@@ -1,1 +1,3 @@
-include ':app', ':library'
+include ':app', ':epic-core', ':FreeReflection-core'
+include ':exposed-xposedapi'
+include ':exposed-core'

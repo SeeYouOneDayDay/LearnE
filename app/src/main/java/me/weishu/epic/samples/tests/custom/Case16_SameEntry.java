@@ -2,7 +2,7 @@ package me.weishu.epic.samples.tests.custom;
 
 import android.util.Log;
 
-import com.taobao.android.dexposed.utility.Debug;
+import utils.Debug;
 
 import java.lang.reflect.Method;
 

@@ -3,7 +3,7 @@ package me.weishu.epic.samples.tests.custom;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.taobao.android.dexposed.utility.Unsafe;
+import utils.Unsafe;
 
 import java.lang.reflect.Method;
 

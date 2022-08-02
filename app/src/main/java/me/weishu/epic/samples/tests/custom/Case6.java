@@ -3,8 +3,8 @@ package me.weishu.epic.samples.tests.custom;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.taobao.android.dexposed.utility.Debug;
-import com.taobao.android.dexposed.utility.Unsafe;
+import utils.Debug;
+import utils.Unsafe;
 
 import java.lang.reflect.Method;
 

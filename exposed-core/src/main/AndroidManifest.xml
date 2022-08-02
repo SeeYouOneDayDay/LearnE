@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="epic.me.weishu.library">
+
+    <uses-sdk tools:overrideLibrary="de.robv.android.xposed" />
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+
+        <service android:name="me.weishu.exposed.LogcatService"
+            android:process=":logcat"
+            android:enabled="true"
+            android:exported="true"/>
+    </application>
+
+</manifest>
