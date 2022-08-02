@@ -24,7 +24,9 @@ dependencies {
 //    implementation ('me.weishu:epic:1.0.0') { // The AOP Framework
 //        exclude group: 'me.weishu.exposed', module: 'exposed-xposedapi'
 //    }
-    implementation 'com.getkeepsafe.relinker:relinker:1.2.3' // for load library
+
+    //https://github.com/KeepSafe/ReLinker
+    implementation 'com.getkeepsafe.relinker:relinker:1.4.5' // for load library
     implementation project(path: ':epic-core')
     implementation project(path: ':exposed-xposedapi')
 }

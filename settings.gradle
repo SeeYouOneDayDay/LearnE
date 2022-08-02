@@ -1,3 +1,2 @@
-include ':app', ':epic-core', ':FreeReflection-core'
-include ':exposed-xposedapi'
-include ':exposed-core'
+include ':app', ':epic-core', ':FreeReflection-core', ':exposed-xposedapi', ':exposed-core', ':relinker-core'
+rootProject.name = "Epic"
