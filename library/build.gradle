@@ -42,7 +42,9 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.github.tiann:FreeReflection:3.1.0"
+    //https://github.com/android-hacker/XposedBridge
     api 'me.weishu.exposed:exposed-xposedapi:0.4.5'
+    //https://github.com/android-hacker/exposed/blob/master/exposed-core/build.gradle
 }
 
 apply plugin: 'com.github.panpf.bintray-publish'
