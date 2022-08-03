@@ -1,3 +1,4 @@
-include ':app', ':epic-core', ':FreeReflection-core', ':exposed-xposedapi', ':exposed-core', ':relinker-core'
+include ':app', ':epic-core', ':FreeReflection-core'
+include ':exposed-xposedapi', ':exposed-core', ':hiddenapistubs'
+include ':relinker-core'
 rootProject.name = "Epic"
-include ':hiddenapistubs'
