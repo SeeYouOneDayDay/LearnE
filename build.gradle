@@ -2,11 +2,15 @@
 
 buildscript {
     repositories {
-        jcenter()
         maven {
             url 'https://maven.google.com/'
             name 'Google'
         }
+        mavenLocal()
+        mavenCentral()
+        google()
+        jcenter()
+        maven { url "https://jitpack.io" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.1'
@@ -15,13 +19,16 @@ buildscript {
 
 allprojects {
     repositories {
-        mavenLocal()
-        jcenter()
+
         maven {
             url 'https://maven.google.com/'
             name 'Google'
         }
-        maven { url 'https://jitpack.io' }
+        mavenLocal()
+        mavenCentral()
+        google()
+        jcenter()
+        maven { url "https://jitpack.io" }
     }
     tasks.withType(Javadoc) {
         enabled = false
