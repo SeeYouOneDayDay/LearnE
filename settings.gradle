@@ -1,4 +1,4 @@
 include ':app', ':epic-core', ':FreeReflection-core'
 include ':exposed-xposedapi', ':exposed-core', ':hiddenapistubs'
 include ':relinker-core'
-rootProject.name = "Epic"
+rootProject.name = "LearnEpic"
