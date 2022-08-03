@@ -1,4 +1,3 @@
-[![Download](https://api.bintray.com/packages/twsxtd/maven/epic/images/download.svg) ](https://bintray.com/twsxtd/maven/epic/_latestVersion)
 [![Join the chat at https://gitter.im/android-hacker/epic](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/android-hacker/epic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)   
 
 [中文文档入口](README_cn.md "中文")
