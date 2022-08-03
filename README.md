@@ -1,37 +1,16 @@
-[![Join the chat at https://gitter.im/android-hacker/epic](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/android-hacker/epic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)   
+## 简介
 
-[中文文档入口](README_cn.md "中文")
+Epic 是一个在虚拟机层面、以 Java Method 为粒度的 **运行时** AOP Hook 框架。简单来说，Epic 就是 ART 上的 [Dexposed](https://github.com/alibaba/dexposed)（支持 Android 5.0 ~ 11）。它可以拦截本进程内部几乎任意的 Java 方法调用，可用于实现 AOP 编程、运行时插桩、性能分析、安全审计等。
 
-What is it?
------------
+Epic 被 [VirtualXposed](https://github.com/android-hacker/VirtualXposed) 以及 [太极](https://www.coolapk.com/apk/me.weishu.exp) 使用，用来实现非 Root 场景下的 Xposed 功能，已经经过了相当广泛的验证。
 
-Epic is the continuation of [Dexposed](https://github.com/alibaba/dexposed) on ART (Supports 5.0 ~ 11).
+关于 Epic 的实现原理，可以参考 [本文](http://weishu.me/2017/11/23/dexposed-on-art/)。
 
-> Dexposed is a powerful yet non-invasive runtime [AOP (Aspect-oriented Programming)](http://en.wikipedia.org/wiki/Aspect-oriented_programming) framework
-for Android app development, based on the work of open-source [Xposed](https://github.com/rovo89/Xposed) [framework](https://github.com/rovo89/XposedBridge) project.
->
-> The AOP of Dexposed is implemented purely non-invasive, without any annotation processor,
-weaver or bytecode rewriter. The integration is as simple as loading a small JNI library
-in just one line of code at the initialization phase of your app.
->
-> Not only the code of your app, but also the code of Android framework that running in your
-app process can be hooked.
+## 使用
 
-Epic keeps the same API and all capability of Dexposed, you can do anything which is supported by Dexposed.
+### 添加依赖
 
-Typical use-cases
------------------
-
-* Classic AOP programming
-* Instrumentation (for testing, performance monitoring and etc.)
-* Security audit (sensitive api check,Smash shell)
-* Just for fun :)
-
-
-Integration
------------
-
-Directly add epic aar to your project as compile libraries, Gradle dependency like following(jitpack):
+在你项目的 build.gradle 中添加如下依赖（jitpack 仓库):
 
 ```groovy
 dependencies {
@@ -39,14 +18,12 @@ dependencies {
 }
 ```
 
-Everything is ready.
+然后就可以使用了。
 
-Basic usage
------------
 
-There are three injection points for a given method: *before*, *after*, *origin*.
+### 几个例子
 
-Example 1: monitor the creation and destroy of java thread
+1. 监控 Java 线程的创建和销毁：
 
 ```java
 class ThreadMethodHook extends XC_MethodHook{
@@ -81,7 +58,11 @@ DexposedBridge.hookAllConstructors(Thread.class, new XC_MethodHook() {
 DexposedBridge.findAndHookMethod(Thread.class, "run", new ThreadMethodHook());
 ```
 
-Example 2: Intercept the dex loading behavior
+以上代码拦截了 `Thread` 类以及 `Thread` 类所有子类的 `run`方法，在 `run` 方法开始执行和退出的时候进行拦截，就可以知道进程内部所有 Java 线程创建和销毁的时机；更进一步，你可以结合 Systrace 等工具，来生成整个过程的执行流程图，比如：
+
+<img src="http://7xp3xc.com1.z0.glb.clouddn.com/201601/1511840542774.png" width="480"/>
+
+2. 监控 dex 文件的加载：
 
 ```java
 DexposedBridge.findAndHookMethod(DexFile.class, "loadDex", String.class, String.class, int.class, new XC_MethodHook() {
@@ -95,39 +76,24 @@ DexposedBridge.findAndHookMethod(DexFile.class, "loadDex", String.class, String.
 });
 ```
 
-Checkout the `sample` project to find out more.
+## 支持情况
 
-Support
-----------
-
-Epic supports ART thumb2 and arm64 architecture from Android 5.0 ~ 11. arm32, x86, x86_64 and mips are not supported now (Thus it cannot work on android emulator).
+目前 Epic 支持 Android 5.0 ~ 11 的 Thumb-2/ARM64 指令集，arm32/x86/x86_64/mips/mips64 不支持。本项目被 [VirtualXposed](https://github.com/android-hacker/VirtualXposed) 和 [太极](http://taichi.cool) 以及大量企业级用户使用，经过了数千万用户的验证，已经被证明非常稳定。目前，手机 QQ 已经在产品中使用 Epic。
 
 
-Known Issues
--------------
+## 已知问题
 
-1. Short method (instruction less 8 bytes on thumb2 or less 16bytes in ARM64) are not supported.
-2. Fully inline methods are not supported.
+1. 受限于 inline hook 本身，短方法 (Thumb-2 下指令小于 8 个字节，ARM64 小于 16 字节) 无法支持。
+2. 被完全内联的方法不支持。
 
-Contribute
-----------
-
-We are open to constructive contributions from the community, especially pull request
-and quality bug report. **Currently, the implementation for ART is not proved in large scale, we value your help to test or improve the implementation.**
-
-You can clone this project, build and install the sample app, just make some click  in your device, if some bugs/crash occurs, please file an issue or a pull request, I would appreciate it :)
-
-Thanks
--------
+## 致谢
 
 1. [Dexposed](https://github.com/alibaba/dexposed)
 2. [Xposed](http://repo.xposed.info/module/de.robv.android.xposed.installer)
 3. [mar-v-in/ArtHook](https://github.com/mar-v-in/ArtHook)
 4. [Nougat_dlfunctions](https://github.com/avs333/Nougat_dlfunctions.git)
 
-Contact me
-----------
+
+## 联系我
 
 twsxtd@gmail.com
-
-[Join discussion](https://gitter.im/android-hacker/epic?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
