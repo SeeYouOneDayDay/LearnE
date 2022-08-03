@@ -135,7 +135,7 @@ public final class Epic {
             }
             Trampoline trampoline = scripts.get(key);
             boolean ret = trampoline.install(artOrigin);
-            // Logger.d(TAG, "hook Method result:" + ret);
+            // uts.Logger.d(TAG, "hook Method result:" + ret);
             return ret;
         }
     }
@@ -146,8 +146,8 @@ public final class Epic {
         String identifier = artOrigin.getIdentifier();
         ArtMethod backupMethod = artOrigin.backup();
 
-        Logger.d(TAG, "backup method address:" + Debug.addrHex(backupMethod.getAddress()));
-        Logger.d(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
+        uts.Logger.d(TAG, "backup method address:" + Debug.addrHex(backupMethod.getAddress()));
+        uts.Logger.d(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
 
         List<ArtMethod> backupList = backupMethodsMapping.get(identifier);
         if (backupList == null) {
@@ -157,10 +157,10 @@ public final class Epic {
         backupList.add(backupMethod);
 
         long originalEntryPoint = ShellCode.toMem(artOrigin.getEntryPointFromQuickCompiledCode());
-        Logger.d(TAG, "originEntry Point(bridge):" + Debug.addrHex(originalEntryPoint));
+        uts.Logger.d(TAG, "originEntry Point(bridge):" + Debug.addrHex(originalEntryPoint));
 
         originalEntryPoint += 16;
-        Logger.d(TAG, "originEntry Point(offset8):" + Debug.addrHex(originalEntryPoint));
+        uts.Logger.d(TAG, "originEntry Point(offset8):" + Debug.addrHex(originalEntryPoint));
 
         if (!scripts.containsKey(originalEntryPoint)) {
             scripts.put(originalEntryPoint, new Trampoline(ShellCode, artOrigin));
@@ -168,7 +168,7 @@ public final class Epic {
         Trampoline trampoline = scripts.get(originalEntryPoint);
 
         boolean ret = trampoline.install();
-        Logger.i(TAG, "hook Method result:" + ret);
+        uts.Logger.i(TAG, "hook Method result:" + ret);
         return ret;
 
     }*/

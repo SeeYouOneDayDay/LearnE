@@ -30,7 +30,7 @@ import static utils.Debug.addrHex;
 
 public final class EpicNative {
 
-    private static final String TAG = "EpicNative";
+    private static final String TAG = "JEpicNative";
     private static volatile boolean useUnsafe = false;
     static {
         try {

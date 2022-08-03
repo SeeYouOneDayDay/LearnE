@@ -17,7 +17,7 @@
 #include <android/log.h>
 #include <cstddef>
 
-#define LOGV(...) ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native", __VA_ARGS__))
+#define LOGV(...) ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native.art", __VA_ARGS__))
 
 #define ANDROID_R_API 30
 #define MAX_SEARCH_LEN 2000

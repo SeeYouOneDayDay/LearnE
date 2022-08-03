@@ -362,7 +362,8 @@ import de.robv.android.xposed.services.BaseService;
 
         // Invalidate callers of methods overridden by XTypedArray
         if (Build.VERSION.SDK_INT >= 24) {
-            Set<Method> methods = getOverriddenMethods(XResources.XTypedArray.class);
+//            Set<Method> methods = getOverriddenMethods(XResources.XTypedArray.class);
+            Set<Method> methods = getOverriddenMethods(XposedHelpers.findClass("android.content.res.XResources$XTypedArray", null));
             XposedBridge.invalidateCallersNative(methods.toArray(new Member[methods.size()]));
         }
 
@@ -373,7 +374,8 @@ import de.robv.android.xposed.services.BaseService;
                 TypedArray typedArray = (TypedArray) param.thisObject;
                 Resources res = typedArray.getResources();
                 if (res instanceof XResources) {
-                    XposedBridge.setObjectClass(typedArray, XResources.XTypedArray.class);
+//                    XposedBridge.setObjectClass(typedArray, XResources.XTypedArray.class);
+                    XposedBridge.setObjectClass(typedArray, XposedHelpers.findClass("android.content.res.XResources$XTypedArray", null));
                 }
             }
         });

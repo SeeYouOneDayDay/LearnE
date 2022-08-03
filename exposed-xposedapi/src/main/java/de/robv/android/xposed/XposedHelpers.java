@@ -1,6 +1,6 @@
 package de.robv.android.xposed;
 
-import android.content.res.AssetManager;
+
 import android.content.res.Resources;
 
 import java.io.BufferedReader;
@@ -30,8 +30,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexFile;
-import external.org.apache.commons.lang3.ClassUtils;
-import external.org.apache.commons.lang3.reflect.MemberUtils;
+import uts.ClassUtils;
+import uts.MemberUtils;
+import uts.XL;
 
 /**
  * Helpers that simplify hooking and calling methods/constructors, getting and settings fields, ...
@@ -327,6 +328,8 @@ public final class XposedHelpers {
      * <p>This variant requires that you already have reference to all the parameter types.
      */
     public static Method findMethodExact(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+        XL.d("XposedHelpers", "inside findMethodExact");
+
         String fullMethodName = clazz.getName() + '#' + methodName + getParametersString(parameterTypes) + "#exact";
 
         if (methodCache.containsKey(fullMethodName)) {
@@ -1531,7 +1534,7 @@ public final class XposedHelpers {
      * Loads an asset from a resource object and returns the content as {@code byte} array.
      *
      * @param res The resources from which the asset should be loaded.
-     * @param path The path to the asset, as in {@link AssetManager#open}.
+     * @param path The path to the asset, as in {AssetManager#open}.
      * @return The content of the asset.
      */
     public static byte[] assetAsByteArray(Resources res, String path) throws IOException {

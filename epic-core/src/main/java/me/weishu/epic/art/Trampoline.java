@@ -49,6 +49,7 @@ class Trampoline {
     }
 
     public boolean install(ArtMethod originMethod){
+        Logger.d(TAG, "inside install");
         boolean modified = segments.add(originMethod);
         if (!modified) {
             // Already hooked, ignore
@@ -144,6 +145,7 @@ class Trampoline {
     }
 
     private byte[] createTrampoline(ArtMethod source){
+        Logger.d("inside createTrampoline");
         final Epic.MethodInfo methodInfo = Epic.getMethodInfo(source.getAddress());
         final Class<?> returnType = methodInfo.returnType;
 

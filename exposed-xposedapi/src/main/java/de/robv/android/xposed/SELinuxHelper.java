@@ -71,9 +71,11 @@ public final class SELinuxHelper {
     /*package*/
     static void initForProcess(String packageName) {
         if (sIsSELinuxEnabled) {
-            if (packageName == null) {  // Zygote
+            if (packageName == null) {
+                // Zygote
                 sServiceAppDataFile = new ZygoteService();
-            } else if (packageName.equals("android")) {  //system_server
+            } else if (packageName.equals("android")) {
+                //system_server
                 sServiceAppDataFile = BinderService.getService(BinderService.TARGET_APP);
             } else {  // app
                 sServiceAppDataFile = new DirectAccessService();

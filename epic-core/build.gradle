@@ -79,7 +79,7 @@ tasks.withType(Javadoc) {
 dependencies {
 
     //https://github.com/android-hacker/XposedBridge
-//    api 'me.weishu.exposed:exposed-xposedapi:0.4.5'
+//    api 'me.weishu.exposed:exposed-xposedapi:0.4.6'
     implementation project(path: ':FreeReflection-core')
     api project(path: ':exposed-xposedapi')
 }

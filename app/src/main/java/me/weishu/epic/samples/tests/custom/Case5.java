@@ -1,15 +1,15 @@
 package me.weishu.epic.samples.tests.custom;
 
-import android.util.Log;
 import android.widget.TextView;
-
-import utils.Unsafe;
 
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.DexposedBridge;
 import de.robv.android.xposed.XC_MethodHook;
 import me.weishu.epic.art.EpicNative;
+import me.weishu.epic.samples.MainApplication;
+import utils.Logger;
+import utils.Unsafe;
 
 /**
  * Created by weishu on 17/11/6.
@@ -23,19 +23,19 @@ public class Case5 implements Case {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
                 if (param.thisObject != null) {
-                    Log.i("mylog", "this:" + Long.toHexString(Unsafe.getObjectAddress(param.thisObject)));
+                    Logger.i("Case5", "this:" + Long.toHexString(Unsafe.getObjectAddress(param.thisObject)));
                 }
                 if (param.method != null) {
-                    Log.i("mylog", "mehod:" + Long.toHexString(EpicNative.getMethodAddress((Method) param.method)));
+                    Logger.i("Case5", "mehod:" + Long.toHexString(EpicNative.getMethodAddress((Method) param.method)));
                 }
                 if (param.args != null) {
                     for (Object arg : param.args) {
-                        Log.i("mylog", "param:" + arg);
+                        Logger.i("Case5", "param:" + arg);
                         if (arg != null) {
-                            Log.i("mylog", "<" + arg.getClass() + "> : 0x" +
+                            Logger.i("Case5", "<" + arg.getClass() + "> : 0x" +
                                     Long.toHexString(Unsafe.getObjectAddress(arg)) + ", value: " + arg);
                         } else {
-                            Log.i("mylog", "param: null");
+                            Logger.i("Case5", "param: null");
                         }
                     }
                 }
@@ -44,13 +44,16 @@ public class Case5 implements Case {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
-                Log.i("mylog", "after");
+                Logger.i("Case5", "after");
             }
         });
     }
 
     @Override
     public boolean validate(Object... args) {
+        TextView tv =new TextView(MainApplication.getAppContext());
+        tv.setPadding(99,99,99,99);
+        Logger.d("Case5","--->"+tv.getLeft());
         return true;
     }
 }

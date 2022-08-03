@@ -42,6 +42,9 @@ public class Reflection {
         return -1;
     }
 
+
+//    2022-08-03 15:57:22.394 5070-5070/me.weishu.epic.samples W/hu.epic.sample: Opening an oat file without a class loader. Are you using the deprecated DexFile APIs?
+//            2022-08-03 15:57:22.394 5070-5070/me.weishu.epic.samples W/hu.epic.sample: DexFile /data/user/0/me.weishu.epic.samples/code_cache/1659513442393.dex is in boot class path but is not in a known location
     private static boolean unsealByDexFile(Context context) {
         byte[] bytes = Base64.decode(DEX, Base64.NO_WRAP);
         File codeCacheDir = getCodeCacheDir(context);

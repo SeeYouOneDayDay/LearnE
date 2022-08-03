@@ -27,12 +27,15 @@
 #include "fake_dlfcn.h"
 #include "art.h"
 
-#undef NDEBUG
-#ifdef NDEBUG
-#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native", __VA_ARGS__))
-#else
-#define LOGV(...)
-#endif
+//#undef NDEBUG
+//#ifdef NDEBUG
+//#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native", __VA_ARGS__))
+//#else
+//#define LOGV(...)
+//#endif
+#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, "epic.Native.epic", __VA_ARGS__))
+#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, "epic.Native.epic", __VA_ARGS__))
+#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native.epic", __VA_ARGS__))
 
 #define JNIHOOK_CLASS "me/weishu/epic/art/EpicNative"
 
@@ -99,7 +102,8 @@ void init_entries(JNIEnv *env) {
         // Android N and O, Google disallow us use dlsym;
         void *handle = dlopen_ex("libart.so", RTLD_NOW);
         void *jit_lib = dlopen_ex("libart-compiler.so", RTLD_NOW);
-        LOGV("fake dlopen install: %p", handle);
+        LOGV("fake dlopen libart install: %p", handle);
+        LOGV("fake dlopen libart-compiler install: %p", jit_lib);
         const char *addWeakGloablReferenceSymbol = api_level <= 25
                                                    ? "_ZN3art9JavaVMExt16AddWeakGlobalRefEPNS_6ThreadEPNS_6mirror6ObjectE"
                                                    : "_ZN3art9JavaVMExt16AddWeakGlobalRefEPNS_6ThreadENS_6ObjPtrINS_6mirror6ObjectEEE";
@@ -402,7 +406,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     JNIEnv *env = NULL;
 
-    LOGV("JNI_OnLoad");
+    LOGV(" inside JNI_OnLoad");
 
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return -1;

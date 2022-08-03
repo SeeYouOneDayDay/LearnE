@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <sys/system_properties.h>
 
-#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "FreeReflect", __VA_ARGS__))
+#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.FreeReflect", __VA_ARGS__))
 
 template<typename T>
 int findOffset(void *start, int regionStart, int regionEnd, T value) {
@@ -33,9 +33,7 @@ int unseal0(Runtime *partialRuntime) {
     bool is_java_debuggable = partialRuntime->is_java_debuggable_;
     bool is_native_debuggable = partialRuntime->is_native_debuggable_;
     bool safe_mode = partialRuntime->safe_mode_;
-
     // TODO validate
-
     LOGV("is_java_debuggable: %d, is_native_debuggable: %d, safe_mode: %d", is_java_debuggable,
          is_native_debuggable, safe_mode);
     LOGV("hidden api policy before : %d", partialRuntime->hidden_api_policy_);
@@ -119,12 +117,10 @@ int unseal(JNIEnv *env, jint targetSdkVersion) {
     */
 
     if (isAndroidR) {
-        auto *partialRuntime = reinterpret_cast<PartialRuntimeR *>((char *) runtime +
-                                                                              targetSdkVersionOffset);
+        auto *partialRuntime = reinterpret_cast<PartialRuntimeR *>((char *) runtime + targetSdkVersionOffset);
         unseal0<PartialRuntimeR>(partialRuntime);
     } else {
-        auto *partialRuntime = (PartialRuntime *) ((char *) runtime +
-                                                             targetSdkVersionOffset);
+        auto *partialRuntime = (PartialRuntime *) ((char *) runtime + targetSdkVersionOffset);
         unseal0<PartialRuntime>(partialRuntime);
     }
 

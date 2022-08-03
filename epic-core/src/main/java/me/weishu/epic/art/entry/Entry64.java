@@ -16,6 +16,8 @@
 
 package me.weishu.epic.art.entry;
 
+import android.util.Log;
+
 import utils.Logger;
 
 import java.lang.reflect.Method;
@@ -79,6 +81,8 @@ public class Entry64 {
 
     //region ---------------bridge---------------
     private static void voidBridge(long r1, long self, long struct, long x4, long x5, long x6, long x7) {
+
+        Logger.d(TAG, "inside voidBridge");
          referenceBridge(r1, self, struct, x4, x5, x6, x7);
     }
 
@@ -116,6 +120,7 @@ public class Entry64 {
     //endregion
 
     private static Object referenceBridge(long x1, long self, long struct, long x4, long x5, long x6, long x7) {
+        Logger.d(TAG,Log.getStackTraceString(new Throwable("----referenceBridge---")));
         Logger.i(TAG, "enter bridge function.");
 
         // struct {

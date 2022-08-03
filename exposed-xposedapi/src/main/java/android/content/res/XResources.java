@@ -2,7 +2,6 @@ package android.content.res;
 
 import static de.robv.android.xposed.XposedHelpers.decrementMethodDepth;
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
-import static de.robv.android.xposed.XposedHelpers.getIntField;
 import static de.robv.android.xposed.XposedHelpers.getLongField;
 import static de.robv.android.xposed.XposedHelpers.getObjectField;
 import static de.robv.android.xposed.XposedHelpers.incrementMethodDepth;
@@ -14,7 +13,6 @@ import android.graphics.Color;
 import android.graphics.Movie;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -42,16 +40,15 @@ import de.robv.android.xposed.callbacks.XC_LayoutInflated;
 import de.robv.android.xposed.callbacks.XC_LayoutInflated.LayoutInflatedParam;
 import de.robv.android.xposed.callbacks.XCallback;
 import xposed.dummy.XResourcesSuperClass;
-import xposed.dummy.XTypedArraySuperClass;
 
 /**
- * {@link android.content.res.Resources} subclass that allows replacing individual resources.
+ * { Resources} subclass that allows replacing individual resources.
  *
  * <p>Xposed replaces the standard resources with this class, which overrides the methods used for
  * retrieving individual resources and adds possibilities to replace them. These replacements can
  * be set using the methods made available via the API methods in this class.
  */
-@SuppressWarnings("JniMissingFunction")
+@SuppressWarnings("deprecation")
 public class XResources extends XResourcesSuperClass {
     private static final SparseArray<HashMap<String, Object>> sReplacements = new SparseArray<>();
     private static final SparseArray<HashMap<String, ResourceNames>> sResourceNames = new SparseArray<>();
@@ -80,9 +77,8 @@ public class XResources extends XResourcesSuperClass {
     private String mResDir;
     private String mPackageName;
 
-    /** Dummy, will never be called (objects are transferred to this class only). */
-    private XResources() {
-        throw new UnsupportedOperationException();
+    public XResources(ClassLoader classLoader) {
+        super();
     }
 
     /** @hide */
@@ -157,16 +153,25 @@ public class XResources extends XResourcesSuperClass {
         if (packageName != null)
             return packageName;
 
-        PackageParser.PackageLite pkgInfo;
-        if (Build.VERSION.SDK_INT >= 21) {
-            try {
-                pkgInfo = PackageParser.parsePackageLite(new File(resDir), 0);
-            } catch (PackageParserException e) {
-                throw new IllegalStateException("Could not determine package name for " + resDir, e);
-            }
-        } else {
-            pkgInfo = PackageParser.parsePackageLite(resDir, 0);
+//		PackageParser.PackageLite pkgInfo;
+        // Dreamland changed: remove useless judgments
+//		if (Build.VERSION.SDK_INT >= 21) {
+//			try {
+//				pkgInfo = PackageParser.parsePackageLite(new File(resDir), 0);
+//			} catch (PackageParserException e) {
+//				throw new IllegalStateException("Could not determine package name for " + resDir, e);
+//			}
+//		} else {
+//			pkgInfo = PackageParser.parsePackageLite(resDir, 0);
+//		}
+
+        PackageParser.PackageLite pkgInfo = null;
+        try {
+            pkgInfo = PackageParser.parsePackageLite(new File(resDir), 0);
+        } catch (PackageParserException e) {
+            throw new IllegalStateException("Could not determine package name for " + resDir, e);
         }
+
         if (pkgInfo != null && pkgInfo.packageName != null) {
             Log.w(XposedBridge.TAG, "Package name for " + resDir + " had to be retrieved via parser");
             packageName = pkgInfo.packageName;
@@ -178,10 +183,10 @@ public class XResources extends XResourcesSuperClass {
     }
 
     /**
-     * Special case of {@link #getPackageName} during object creation.
+     * Special case of { #getPackageName} during object creation.
      *
-     * <p>For a short moment during/after the creation of a new {@link android.content.res Resources}
-     * object, it isn't an instance of {@link XResources} yet. For any hooks that need information
+     * <p>For a short moment during/after the creation of a new { android.content.res Resources}
+     * object, it isn't an instance of { XResources} yet. For any hooks that need information
      * about the just created object during this particular stage, this method will return the
      * package name.
      *
@@ -239,7 +244,9 @@ public class XResources extends XResourcesSuperClass {
                 XMLInstanceDetails details = (XMLInstanceDetails) param.getObjectExtra(EXTRA_XML_INSTANCE_DETAILS);
                 if (details != null) {
                     LayoutInflatedParam liparam = new LayoutInflatedParam(details.callbacks);
-                    ViewGroup group = (ViewGroup) param.args[(Build.VERSION.SDK_INT < 23) ? 1 : 2];
+                    // Dreamland changed: Remove useless judgments
+//					ViewGroup group = (ViewGroup) param.args[(Build.VERSION.SDK_INT < 23) ? 1 : 2];
+                    ViewGroup group = (ViewGroup) param.args[2];
                     liparam.view = group.getChildAt(group.getChildCount() - 1);
                     liparam.resNames = details.resNames;
                     liparam.variant = details.variant;
@@ -248,16 +255,20 @@ public class XResources extends XResourcesSuperClass {
                 }
             }
         };
-        if (Build.VERSION.SDK_INT < 21) {
-            findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, View.class,
-                    AttributeSet.class, parseIncludeHook);
-        } else if (Build.VERSION.SDK_INT < 23) {
-            findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, View.class,
-                    AttributeSet.class, boolean.class, parseIncludeHook);
-        } else {
-            findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, Context.class,
-                    View.class, AttributeSet.class, parseIncludeHook);
-        }
+
+        // Dreamland changed: Remove useless judgments
+//		if (Build.VERSION.SDK_INT < 21) {
+//			findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, View.class,
+//					AttributeSet.class, parseIncludeHook);
+//		} else if (Build.VERSION.SDK_INT < 23) {
+//			findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, View.class,
+//					AttributeSet.class, boolean.class, parseIncludeHook);
+//		} else {
+//			findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, Context.class,
+//					View.class, AttributeSet.class, parseIncludeHook);
+//		}
+        findAndHookMethod(LayoutInflater.class, "parseInclude", XmlPullParser.class, Context.class,
+                View.class, AttributeSet.class, parseIncludeHook);
     }
 
     /**
@@ -266,13 +277,13 @@ public class XResources extends XResourcesSuperClass {
     public static class ResourceNames {
         /** The resource ID. */
         public final int id;
-        /** The resource package name as returned by {@link #getResourcePackageName}. */
+        /** The resource package name as returned by { #getResourcePackageName}. */
         public final String pkg;
-        /** The resource entry name as returned by {@link #getResourceEntryName}. */
+        /** The resource entry name as returned by { #getResourceEntryName}. */
         public final String name;
-        /** The resource type name as returned by {@link #getResourceTypeName}. */
+        /** The resource type name as returned by { #getResourceTypeName}. */
         public final String type;
-        /** The full resource nameas returned by {@link #getResourceName}. */
+        /** The full resource nameas returned by { #getResourceName}. */
         public final String fullName;
 
         private ResourceNames(int id, String pkg, String name, String type) {
@@ -330,7 +341,7 @@ public class XResources extends XResourcesSuperClass {
     // =======================================================
 
     /**
-     * Sets a replacement for an individual resource. See {@link #setReplacement(String, String, String, Object)}.
+     * Sets a replacement for an individual resource. See { #setReplacement(String, String, String, Object)}.
      *
      * @param id The ID of the resource which should be replaced.
      * @param replacement The replacement, see above.
@@ -340,12 +351,12 @@ public class XResources extends XResourcesSuperClass {
     }
 
     /**
-     * Sets a replacement for an individual resource. See {@link #setReplacement(String, String, String, Object)}.
+     * Sets a replacement for an individual resource. See { #setReplacement(String, String, String, Object)}.
      *
-     * @deprecated Use {@link #setReplacement(String, String, String, Object)} instead.
+     * @deprecated Use { #setReplacement(String, String, String, Object)} instead.
      *
      * @param fullName The full resource name, e.g. {@code com.example.myapplication:string/app_name}.
-     *                 See {@link #getResourceName}.
+     *                 See { #getResourceName}.
      * @param replacement The replacement.
      */
     @Deprecated
@@ -361,8 +372,8 @@ public class XResources extends XResourcesSuperClass {
      * replacement from the last call is used. Setting the replacement to {@code null} removes it.
      *
      * <p>The allowed replacements depend on the type of the source. All types accept an
-     * {@link XResForwarder} object, which is usually created with {@link XModuleResources#fwd}.
-     * The resource request will then be forwarded to another {@link android.content.res.Resources}
+     * { XResForwarder} object, which is usually created with { XModuleResources#fwd}.
+     * The resource request will then be forwarded to another { Resources}
      * object. In addition to that, the following replacement types are accepted:
      *
      * <table>
@@ -373,101 +384,101 @@ public class XResources extends XResourcesSuperClass {
      *     <tbody>
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/animation-resource.html">Animation</a></td>
      *         <td>&nbsp;<i>none</i></td>
-     *         <td>{@link #getAnimation}</td>
+     *         <td>{ #getAnimation}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/more-resources.html#Bool">Bool</a></td>
-     *         <td>{@link Boolean}</td>
-     *         <td>{@link #getBoolean}</td>
+     *         <td>{ Boolean}</td>
+     *         <td>{ #getBoolean}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/more-resources.html#Color">Color</a></td>
-     *         <td>{@link Integer} (you might want to use {@link Color#parseColor})</td>
-     *         <td>{@link #getColor}<br>
-     *             {@link #getDrawable} (creates a {@link ColorDrawable})<br>
-     *             {@link #getColorStateList} (calls {@link android.content.res.ColorStateList#valueOf})
+     *         <td>{ Integer} (you might want to use { Color#parseColor})</td>
+     *         <td>{ #getColor}<br>
+     *             { #getDrawable} (creates a { ColorDrawable})<br>
+     *             { #getColorStateList} (calls { ColorStateList#valueOf})
      *         </td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/color-list-resource.html">Color State List</a></td>
-     *         <td>{@link android.content.res.ColorStateList}<br>
-     *             {@link Integer} (calls {@link android.content.res.ColorStateList#valueOf})
+     *         <td>{ ColorStateList}<br>
+     *             { Integer} (calls { ColorStateList#valueOf})
      *         </td>
-     *         <td>{@link #getColorStateList}</td>
+     *         <td>{ #getColorStateList}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/more-resources.html#Dimension">Dimension</a></td>
-     *         <td>{@link DimensionReplacement} <i>(since v50)</i></td>
-     *         <td>{@link #getDimension}<br>
-     *             {@link #getDimensionPixelOffset}<br>
-     *             {@link #getDimensionPixelSize}
+     *         <td>{ DimensionReplacement} <i>(since v50)</i></td>
+     *         <td>{ #getDimension}<br>
+     *             { #getDimensionPixelOffset}<br>
+     *             { #getDimensionPixelSize}
      *         </td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/drawable-resource.html">Drawable</a>
      *             (including <a href="http://developer.android.com/tools/projects/index.html#mipmap">mipmap</a>)</td>
-     *         <td>{@link DrawableLoader}<br>
-     *             {@link Integer} (creates a {@link ColorDrawable})
+     *         <td>{ DrawableLoader}<br>
+     *             { Integer} (creates a { ColorDrawable})
      *         </td>
-     *         <td>{@link #getDrawable}<br>
-     *             {@link #getDrawableForDensity}
+     *         <td>{ #getDrawable}<br>
+     *             { #getDrawableForDensity}
      *         </td>
      *     </tr>
      *
      *     <tr><td>Fraction</td>
      *         <td>&nbsp;<i>none</i></td>
-     *         <td>{@link #getFraction}</td>
+     *         <td>{ #getFraction}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/more-resources.html#Integer">Integer</a></td>
-     *         <td>{@link Integer}</td>
-     *         <td>{@link #getInteger}</td>
+     *         <td>{ Integer}</td>
+     *         <td>{ #getInteger}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/more-resources.html#IntegerArray">Integer Array</a></td>
      *         <td>{@code int[]}</td>
-     *         <td>{@link #getIntArray}</td>
+     *         <td>{ #getIntArray}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/layout-resource.html">Layout</a></td>
-     *         <td>&nbsp;<i>none, but see {@link #hookLayout}</i></td>
-     *         <td>{@link #getLayout}</td>
+     *         <td>&nbsp;<i>none, but see { #hookLayout}</i></td>
+     *         <td>{ #getLayout}</td>
      *     </tr>
      *
      *     <tr><td>Movie</td>
      *         <td>&nbsp;<i>none</i></td>
-     *         <td>{@link #getMovie}</td>
+     *         <td>{ #getMovie}</td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/string-resource.html#Plurals">Quantity Strings (Plurals)</a></td>
      *         <td>&nbsp;<i>none</i></td>
-     *         <td>{@link #getQuantityString}<br>
-     *             {@link #getQuantityText}
+     *         <td>{ #getQuantityString}<br>
+     *             { #getQuantityText}
      *         </td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/string-resource.html#String">String</a></td>
-     *         <td>{@link String}<br>
-     *             {@link CharSequence} (for styled texts, see also {@link Html#fromHtml})
+     *         <td>{ String}<br>
+     *             { CharSequence} (for styled texts, see also { Html#fromHtml})
      *         </td>
-     *         <td>{@link #getString}<br>
-     *             {@link #getText}
+     *         <td>{ #getString}<br>
+     *             { #getText}
      *         </td>
      *     </tr>
      *
      *     <tr><td><a href="http://developer.android.com/guide/topics/resources/string-resource.html#StringArray">String Array</a></td>
      *         <td>{@code String[]}<br>
-     *             {@code CharSequence[]} (for styled texts, see also {@link Html#fromHtml})
+     *             {@code CharSequence[]} (for styled texts, see also { Html#fromHtml})
      *         </td>
-     *         <td>{@link #getStringArray}<br>
-     *             {@link #getTextArray}
+     *         <td>{ #getStringArray}<br>
+     *             { #getTextArray}
      *         </td>
      *     </tr>
      *
      *     <tr><td>XML</td>
      *         <td>&nbsp;<i>none</i></td>
-     *         <td>{@link #getXml}<br>
-     *             {@link #getQuantityText}
+     *         <td>{ #getXml}<br>
+     *             { #getQuantityText}
      *         </td>
      *     </tr>
      *
@@ -481,17 +492,17 @@ public class XResources extends XResourcesSuperClass {
      * can't be replaced.
      *
      * <p><i>
-     *    * Auto-boxing allows you to use literals like {@code 123} where an {@link Integer} is
-     *      accepted, so you don't neeed to call methods like {@link Integer#valueOf(int)} manually.<br>
+     *    * Auto-boxing allows you to use literals like {@code 123} where an { Integer} is
+     *      accepted, so you don't neeed to call methods like { Integer#valueOf(int)} manually.<br>
      *    ** Some of these methods have multiple variants, only one of them is mentioned here.
      * </i>
      *
      * @param pkg The package name, e.g. {@code com.example.myapplication}.
-     *            See {@link #getResourcePackageName}.
+     *            See { #getResourcePackageName}.
      * @param type The type name, e.g. {@code string}.
-     *            See {@link #getResourceTypeName}.
+     *            See { #getResourceTypeName}.
      * @param name The entry name, e.g. {@code app_name}.
-     *            See {@link #getResourceEntryName}.
+     *            See { #getResourceEntryName}.
      * @param replacement The replacement.
      */
     public void setReplacement(String pkg, String type, String name, Object replacement) {
@@ -503,7 +514,7 @@ public class XResources extends XResourcesSuperClass {
 
     /**
      * Sets a replacement for an individual Android framework resource (in the {@code android} package).
-     * See {@link #setSystemWideReplacement(String, String, String, Object)}.
+     * See { #setSystemWideReplacement(String, String, String, Object)}.
      *
      * @param id The ID of the resource which should be replaced.
      * @param replacement The replacement.
@@ -514,12 +525,12 @@ public class XResources extends XResourcesSuperClass {
 
     /**
      * Sets a replacement for an individual Android framework resource (in the {@code android} package).
-     * See {@link #setSystemWideReplacement(String, String, String, Object)}.
+     * See { #setSystemWideReplacement(String, String, String, Object)}.
      *
-     * @deprecated Use {@link #setSystemWideReplacement(String, String, String, Object)} instead.
+     * @deprecated Use { #setSystemWideReplacement(String, String, String, Object)} instead.
      *
      * @param fullName The full resource name, e.g. {@code android:string/yes}.
-     *                 See {@link #getResourceName}.
+     *                 See { #getResourceName}.
      * @param replacement The replacement.
      */
     @Deprecated
@@ -534,19 +545,19 @@ public class XResources extends XResourcesSuperClass {
      * Sets a replacement for an individual Android framework resource (in the {@code android} package).
      *
      * <p>Some resources are part of the Android framework and can be used in any app. They're
-     * accessible via {@link android.R android.R} and are not bound to a specific
-     * {@link android.content.res.Resources} instance. Such resources can be replaced in
-     * {@link IXposedHookZygoteInit#initZygote initZygote()} for all apps. As there is no
-     * {@link XResources} object easily available in that scope, this static method can be used
+     * accessible via { android.R android.R} and are not bound to a specific
+     * { Resources} instance. Such resources can be replaced in
+     * { IXposedHookZygoteInit#initZygote initZygote()} for all apps. As there is no
+     * { XResources} object easily available in that scope, this static method can be used
      * to set resource replacements. All other details (e.g. how certain types can be replaced) are
-     * mentioned in {@link #setReplacement(String, String, String, Object)}.
+     * mentioned in { #setReplacement(String, String, String, Object)}.
      *
      * @param pkg The package name, should always be {@code android} here.
-     *            See {@link #getResourcePackageName}.
+     *            See { #getResourcePackageName}.
      * @param type The type name, e.g. {@code string}.
-     *            See {@link #getResourceTypeName}.
+     *            See { #getResourceTypeName}.
      * @param name The entry name, e.g. {@code yes}.
-     *            See {@link #getResourceEntryName}.
+     *            See { #getResourceEntryName}.
      * @param replacement The replacement.
      */
     public static void setSystemWideReplacement(String pkg, String type, String name, Object replacement) {
@@ -593,7 +604,8 @@ public class XResources extends XResourcesSuperClass {
     //   RETURNING REPLACEMENTS
     // =======================================================
 
-    private Object getReplacement(int id) {
+    // Dreamland changed: getReplacement is visible in the package
+    /*package*/ Object getReplacement(int id) {
         if (id <= 0)
             return null;
 
@@ -636,9 +648,10 @@ public class XResources extends XResourcesSuperClass {
             XmlResourceParser result = repRes.getAnimation(repId);
 
             if (!loadedFromCache) {
-                long parseState = (Build.VERSION.SDK_INT >= 21)
-                        ? getLongField(result, "mParseState")
-                        : getIntField(result, "mParseState");
+//				long parseState = (Build.VERSION.SDK_INT >= 21)
+//					? getLongField(result, "mParseState")
+//					: getIntField(result, "mParseState");
+                long parseState = getLongField(result, "mParseState");
                 rewriteXmlReferencesNative(parseState, this, repRes);
             }
 
@@ -797,8 +810,9 @@ public class XResources extends XResourcesSuperClass {
         }
     }
 
+    // Dreamland changed: remove support for CM12 (it based on android 5 and not supported)
 //	/** @hide */
-////	@Override
+//	@Override
 //	public Drawable getDrawable(int id, Theme theme, boolean supportComposedIcons) throws NotFoundException {
 //		try {
 //			if (incrementMethodDepth("getDrawable") == 1) {
@@ -879,6 +893,7 @@ public class XResources extends XResourcesSuperClass {
         }
     }
 
+    // Dreamland changed: remove support for CM12 (it based on android 5 and not supported)
 //	/** @hide */
 //	@Override
 //	public Drawable getDrawableForDensity(int id, int density, Theme theme, boolean supportComposedIcons) throws NotFoundException {
@@ -958,9 +973,10 @@ public class XResources extends XResourcesSuperClass {
             result = repRes.getLayout(repId);
 
             if (!loadedFromCache) {
-                long parseState = (Build.VERSION.SDK_INT >= 21)
-                        ? getLongField(result, "mParseState")
-                        : getIntField(result, "mParseState");
+//				long parseState = (Build.VERSION.SDK_INT >= 21)
+//					? getLongField(result, "mParseState")
+//					: getIntField(result, "mParseState");
+                long parseState = getLongField(result, "mParseState");
                 rewriteXmlReferencesNative(parseState, this, repRes);
             }
         } else {
@@ -1114,9 +1130,10 @@ public class XResources extends XResourcesSuperClass {
             XmlResourceParser result = repRes.getXml(repId);
 
             if (!loadedFromCache) {
-                long parseState = (Build.VERSION.SDK_INT >= 21)
-                        ? getLongField(result, "mParseState")
-                        : getIntField(result, "mParseState");
+//				long parseState = (Build.VERSION.SDK_INT >= 21)
+//					? getLongField(result, "mParseState")
+//					: getIntField(result, "mParseState");
+                long parseState = getLongField(result, "mParseState");
                 rewriteXmlReferencesNative(parseState, this, repRes);
             }
 
@@ -1126,9 +1143,11 @@ public class XResources extends XResourcesSuperClass {
     }
 
     private static boolean isXmlCached(Resources res, int id) {
-        int[] mCachedXmlBlockIds = (int[]) getObjectField(res, "mCachedXmlBlockIds");
-        synchronized (mCachedXmlBlockIds) {
-            for (int cachedId : mCachedXmlBlockIds) {
+//		int[] mCachedXmlBlockIds = (int[]) getObjectField(res, "mCachedXmlBlockIds");
+        int[] cachedXmlBlockIds = (int[]) getObjectField(getObjectField(res, "mResourcesImpl"),
+                "mCachedXmlBlockCookies");
+        synchronized (cachedXmlBlockIds) {
+            for (int cachedId : cachedXmlBlockIds) {
                 if (cachedId == id)
                     return true;
             }
@@ -1136,6 +1155,7 @@ public class XResources extends XResourcesSuperClass {
         return false;
     }
 
+    @SuppressWarnings("JavaJniMissingFunction")
     private static native void rewriteXmlReferencesNative(long parserPtr, XResources origRes, Resources repRes);
 
     /**
@@ -1205,11 +1225,11 @@ public class XResources extends XResourcesSuperClass {
     /**
      * Generates a fake resource ID.
      *
-     * <p>This variant uses the result of {@link #getResourceName} to create the hash that the ID is
-     * based on. The given resource doesn't need to match the {@link XResources} instance for which
+     * <p>This variant uses the result of { #getResourceName} to create the hash that the ID is
+     * based on. The given resource doesn't need to match the { XResources} instance for which
      * the fake resource ID is going to be used.
      *
-     * @param res The {@link android.content.res.Resources} object to be used for hashing.
+     * @param res The { Resources} object to be used for hashing.
      * @param id The resource ID to be used for hashing.
      * @return The fake resource ID.
      */
@@ -1218,17 +1238,17 @@ public class XResources extends XResourcesSuperClass {
     }
 
     /**
-     * Makes any individual resource available from another {@link android.content.res.Resources}
-     * instance available in this {@link XResources} instance.
+     * Makes any individual resource available from another { Resources}
+     * instance available in this { XResources} instance.
      *
-     * <p>This method combines calls to {@link #getFakeResId(Resources, int)} and
-     * {@link #setReplacement(int, Object)} to generate a fake resource ID and set up a replacement
+     * <p>This method combines calls to { #getFakeResId(Resources, int)} and
+     * { #setReplacement(int, Object)} to generate a fake resource ID and set up a replacement
      * for it which forwards to the given resource.
      *
      * <p>The returned ID can only be used to retrieve the resource, it won't work for methods like
-     * {@link #getResourceName} etc.
+     * { #getResourceName} etc.
      *
-     * @param res The target {@link android.content.res.Resources} instance.
+     * @param res The target { Resources} instance.
      * @param id The target resource ID.
      * @return The fake resource ID (see above).
      */
@@ -1242,7 +1262,7 @@ public class XResources extends XResourcesSuperClass {
     }
 
     /**
-     * Similar to {@link #translateResId}, but used to determine the original ID of attribute names.
+     * Similar to { #translateResId}, but used to determine the original ID of attribute names.
      */
     private static int translateAttrId(String attrName, XResources origRes) {
         String origPackage = origRes.mPackageName;
@@ -1255,239 +1275,6 @@ public class XResources extends XResourcesSuperClass {
         return origAttrId;
     }
 
-    // =======================================================
-    //   XTypedArray class
-    // =======================================================
-
-    /**
-     * {@link android.content.res.TypedArray} replacement that replaces values on-the-fly.
-     * Mainly used when inflating layouts.
-     * @hide
-     */
-    public static class XTypedArray extends XTypedArraySuperClass {
-        /** Dummy, will never be called (objects are transferred to this class only). */
-        private XTypedArray() {
-            super(null, null, null, 0);
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean getBoolean(int index, boolean defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof Boolean) {
-                return (Boolean) replacement;
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getBoolean(repId);
-            }
-            return super.getBoolean(index, defValue);
-        }
-
-        @Override
-        public int getColor(int index, int defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof Integer) {
-                return (Integer) replacement;
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getColor(repId);
-            }
-            return super.getColor(index, defValue);
-        }
-
-        @Override
-        public ColorStateList getColorStateList(int index) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof ColorStateList) {
-                return (ColorStateList) replacement;
-            } else if (replacement instanceof Integer) {
-                int color = (Integer) replacement;
-                synchronized (sColorStateListCache) {
-                    ColorStateList result = sColorStateListCache.get(color);
-                    if (result == null) {
-                        result = ColorStateList.valueOf(color);
-                        sColorStateListCache.put(color, result);
-                    }
-                    return result;
-                }
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getColorStateList(repId);
-            }
-            return super.getColorStateList(index);
-        }
-
-        @Override
-        public float getDimension(int index, float defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getDimension(repId);
-            }
-            return super.getDimension(index, defValue);
-        }
-
-        @Override
-        public int getDimensionPixelOffset(int index, int defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getDimensionPixelOffset(repId);
-            }
-            return super.getDimensionPixelOffset(index, defValue);
-        }
-
-        @Override
-        public int getDimensionPixelSize(int index, int defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getDimensionPixelSize(repId);
-            }
-            return super.getDimensionPixelSize(index, defValue);
-        }
-
-        @Override
-        public Drawable getDrawable(int index) {
-            final int resId = getResourceId(index, 0);
-            XResources xres = (XResources) getResources();
-            Object replacement = xres.getReplacement(resId);
-            if (replacement instanceof DrawableLoader) {
-                try {
-                    Drawable result = ((DrawableLoader) replacement).newDrawable(xres, resId);
-                    if (result != null)
-                        return result;
-                } catch (Throwable t) {
-                    XposedBridge.log(t);
-                }
-            } else if (replacement instanceof Integer) {
-                return new ColorDrawable((Integer) replacement);
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getDrawable(repId);
-            }
-            return super.getDrawable(index);
-        }
-
-        @Override
-        public float getFloat(int index, float defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                // dimensions seem to be the only way to define floats by references
-                return repRes.getDimension(repId);
-            }
-            return super.getFloat(index, defValue);
-        }
-
-        @Override
-        public float getFraction(int index, int base, int pbase, float defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                // dimensions seem to be the only way to define floats by references
-                return repRes.getFraction(repId, base, pbase);
-            }
-            return super.getFraction(index, base, pbase, defValue);
-        }
-
-        @Override
-        public int getInt(int index, int defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof Integer) {
-                return (Integer) replacement;
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getInteger(repId);
-            }
-            return super.getInt(index, defValue);
-        }
-
-        @Override
-        public int getInteger(int index, int defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof Integer) {
-                return (Integer) replacement;
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getInteger(repId);
-            }
-            return super.getInteger(index, defValue);
-        }
-
-        @Override
-        public int getLayoutDimension(int index, int defValue) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getDimensionPixelSize(repId);
-            }
-            return super.getLayoutDimension(index, defValue);
-        }
-
-        @Override
-        public int getLayoutDimension(int index, String name) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getDimensionPixelSize(repId);
-            }
-            return super.getLayoutDimension(index, name);
-        }
-
-        @Override
-        public String getString(int index) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof CharSequence) {
-                return replacement.toString();
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getString(repId);
-            }
-            return super.getString(index);
-        }
-
-        @Override
-        public CharSequence getText(int index) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof CharSequence) {
-                return (CharSequence) replacement;
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getText(repId);
-            }
-            return super.getText(index);
-        }
-
-        @Override
-        public CharSequence[] getTextArray(int index) {
-            Object replacement = ((XResources) getResources()).getReplacement(getResourceId(index, 0));
-            if (replacement instanceof CharSequence[]) {
-                return (CharSequence[]) replacement;
-            } else if (replacement instanceof XResForwarder) {
-                Resources repRes = ((XResForwarder) replacement).getResources();
-                int repId = ((XResForwarder) replacement).getId();
-                return repRes.getTextArray(repId);
-            }
-            return super.getTextArray(index);
-        }
-    }
-
 
     // =======================================================
     //   DrawableLoader class
@@ -1495,9 +1282,9 @@ public class XResources extends XResourcesSuperClass {
 
     /**
      * Callback for drawable replacements. Instances of this class can passed to
-     * {@link #setReplacement(String, String, String, Object)} and its variants.
+     * { #setReplacement(String, String, String, Object)} and its variants.
      *
-     * <p class="caution">Make sure to always return new {@link Drawable} instances, as drawables
+     * <p class="caution">Make sure to always return new { Drawable} instances, as drawables
      * usually can't be reused.
      */
     @SuppressWarnings("UnusedParameters")
@@ -1511,22 +1298,22 @@ public class XResources extends XResourcesSuperClass {
         /**
          * Called when the hooked drawable resource has been requested.
          *
-         * @param res The {@link XResources} object in which the hooked drawable resides.
+         * @param res The { XResources} object in which the hooked drawable resides.
          * @param id The resource ID which has been requested.
-         * @return The {@link Drawable} which should be used as replacement. {@code null} is ignored.
+         * @return The { Drawable} which should be used as replacement. {@code null} is ignored.
          * @throws Throwable Everything the callback throws is caught and logged.
          */
         public abstract Drawable newDrawable(XResources res, int id) throws Throwable;
 
         /**
-         * Like {@link #newDrawable}, but called for {@link #getDrawableForDensity}. The default
-         * implementation is to use the result of {@link #newDrawable}.
+         * Like { #newDrawable}, but called for { #getDrawableForDensity}. The default
+         * implementation is to use the result of { #newDrawable}.
          *
-         * @param res The {@link XResources} object in which the hooked drawable resides.
+         * @param res The { XResources} object in which the hooked drawable resides.
          * @param id The resource ID which has been requested.
          * @param density The desired screen density indicated by the resource as found in
-         *                {@link DisplayMetrics}.
-         * @return The {@link Drawable} which should be used as replacement. {@code null} is ignored.
+         *                { DisplayMetrics}.
+         * @return The { Drawable} which should be used as replacement. {@code null} is ignored.
          * @throws Throwable Everything the callback throws is caught and logged.
          */
         public Drawable newDrawableForDensity(XResources res, int id, int density) throws Throwable {
@@ -1541,35 +1328,35 @@ public class XResources extends XResourcesSuperClass {
 
     /**
      * Callback for dimension replacements. Instances of this class can passed to
-     * {@link #setReplacement(String, String, String, Object)} and its variants.
+     * { #setReplacement(String, String, String, Object)} and its variants.
      */
     public static class DimensionReplacement {
         private final float mValue;
         private final int mUnit;
 
         /**
-         * Creates an instance that can be used for {@link #setReplacement(String, String, String, Object)}
+         * Creates an instance that can be used for { #setReplacement(String, String, String, Object)}
          * to replace a dimension resource.
          *
          * @param value The value of the replacement, in the unit specified with the next parameter.
-         * @param unit One of the {@code COMPLEX_UNIT_*} constants in {@link TypedValue}.
+         * @param unit One of the {@code COMPLEX_UNIT_*} constants in { TypedValue}.
          */
         public DimensionReplacement(float value, int unit) {
             mValue = value;
             mUnit = unit;
         }
 
-        /** Called by {@link android.content.res.Resources#getDimension}. */
+        /** Called by { Resources#getDimension}. */
         public float getDimension(DisplayMetrics metrics) {
             return TypedValue.applyDimension(mUnit, mValue, metrics);
         }
 
-        /** Called by {@link android.content.res.Resources#getDimensionPixelOffset}. */
+        /** Called by { Resources#getDimensionPixelOffset}. */
         public int getDimensionPixelOffset(DisplayMetrics metrics) {
             return (int) TypedValue.applyDimension(mUnit, mValue, metrics);
         }
 
-        /** Called by {@link android.content.res.Resources#getDimensionPixelSize}. */
+        /** Called by { Resources#getDimensionPixelSize}. */
         public int getDimensionPixelSize(DisplayMetrics metrics) {
             final float f = TypedValue.applyDimension(mUnit, mValue, metrics);
             final int res = (int) (f + 0.5f);
@@ -1611,10 +1398,10 @@ public class XResources extends XResourcesSuperClass {
     /**
      * Hook the inflation of a layout.
      *
-     * @deprecated Use {@link #hookLayout(String, String, String, XC_LayoutInflated)} instead.
+     * @deprecated Use { #hookLayout(String, String, String, XC_LayoutInflated)} instead.
      *
      * @param fullName The full resource name, e.g. {@code com.android.systemui:layout/statusbar}.
-     *                 See {@link #getResourceName}.
+     *                 See { #getResourceName}.
      * @param callback The callback to be executed when the layout has been inflated.
      * @return An object which can be used to remove the callback again.
      */
@@ -1630,11 +1417,11 @@ public class XResources extends XResourcesSuperClass {
      * Hook the inflation of a layout.
      *
      * @param pkg The package name, e.g. {@code com.android.systemui}.
-     *            See {@link #getResourcePackageName}.
+     *            See { #getResourcePackageName}.
      * @param type The type name, e.g. {@code layout}.
-     *            See {@link #getResourceTypeName}.
+     *            See { #getResourceTypeName}.
      * @param name The entry name, e.g. {@code statusbar}.
-     *            See {@link #getResourceEntryName}.
+     *            See { #getResourceEntryName}.
      * @param callback The callback to be executed when the layout has been inflated.
      * @return An object which can be used to remove the callback again.
      */
@@ -1647,7 +1434,7 @@ public class XResources extends XResourcesSuperClass {
 
     /**
      * Hook the inflation of an Android framework layout (in the {@code android} package).
-     * See {@link #hookSystemWideLayout(String, String, String, XC_LayoutInflated)}.
+     * See { #hookSystemWideLayout(String, String, String, XC_LayoutInflated)}.
      *
      * @param id The ID of the resource which should be replaced.
      * @param callback The callback to be executed when the layout has been inflated.
@@ -1661,12 +1448,12 @@ public class XResources extends XResourcesSuperClass {
 
     /**
      * Hook the inflation of an Android framework layout (in the {@code android} package).
-     * See {@link #hookSystemWideLayout(String, String, String, XC_LayoutInflated)}.
+     * See { #hookSystemWideLayout(String, String, String, XC_LayoutInflated)}.
      *
-     * @deprecated Use {@link #hookSystemWideLayout(String, String, String, XC_LayoutInflated)} instead.
+     * @deprecated Use { #hookSystemWideLayout(String, String, String, XC_LayoutInflated)} instead.
      *
      * @param fullName The full resource name, e.g. {@code android:layout/simple_list_item_1}.
-     *                 See {@link #getResourceName}.
+     *                 See { #getResourceName}.
      * @param callback The callback to be executed when the layout has been inflated.
      * @return An object which can be used to remove the callback again.
      */
@@ -1682,18 +1469,18 @@ public class XResources extends XResourcesSuperClass {
      * Hook the inflation of an Android framework layout (in the {@code android} package).
      *
      * <p>Some layouts are part of the Android framework and can be used in any app. They're
-     * accessible via {@link android.R.layout android.R.layout} and are not bound to a specific
-     * {@link android.content.res.Resources} instance. Such resources can be replaced in
-     * {@link IXposedHookZygoteInit#initZygote initZygote()} for all apps. As there is no
-     * {@link XResources} object easily available in that scope, this static method can be used
+     * accessible via { android.R.layout android.R.layout} and are not bound to a specific
+     * { Resources} instance. Such resources can be replaced in
+     * { IXposedHookZygoteInit#initZygote initZygote()} for all apps. As there is no
+     * { XResources} object easily available in that scope, this static method can be used
      * to hook layouts.
      *
      * @param pkg The package name, e.g. {@code android}.
-     *            See {@link #getResourcePackageName}.
+     *            See { #getResourcePackageName}.
      * @param type The type name, e.g. {@code layout}.
-     *            See {@link #getResourceTypeName}.
+     *            See { #getResourceTypeName}.
      * @param name The entry name, e.g. {@code simple_list_item_1}.
-     *            See {@link #getResourceEntryName}.
+     *            See { #getResourceEntryName}.
      * @param callback The callback to be executed when the layout has been inflated.
      * @return An object which can be used to remove the callback again.
      */

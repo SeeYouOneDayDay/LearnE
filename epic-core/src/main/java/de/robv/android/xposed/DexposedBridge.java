@@ -24,8 +24,7 @@ import static de.robv.android.xposed.XposedHelpers.getIntField;
 import android.app.AndroidAppHelper;
 import android.os.Build;
 
-import utils.Logger;
-import utils.Runtime;
+import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
@@ -42,6 +41,9 @@ import java.util.Set;
 import me.weishu.epic.art.Epic;
 import me.weishu.epic.art.method.ArtMethod;
 import me.weishu.reflection.Reflection;
+import utils.Logger;
+import utils.Runtime;
+
 
 public final class DexposedBridge {
 
@@ -55,6 +57,7 @@ public final class DexposedBridge {
                 throw new RuntimeException("unsupported api level: " + Build.VERSION.SDK_INT);
             }
             Reflection.unseal(AndroidAppHelper.currentApplication());
+            HiddenApiBypass.unseal(AndroidAppHelper.currentApplication());
         } catch (Throwable e) {
             Logger.e(e);
         }
@@ -149,15 +152,23 @@ public final class DexposedBridge {
     }
 
     public static XC_MethodHook.Unhook findAndHookMethod(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
+
+        Logger.d(TAG, "inside findAndHookMethod");
         if (parameterTypesAndCallback.length == 0 || !(parameterTypesAndCallback[parameterTypesAndCallback.length - 1] instanceof XC_MethodHook))
             throw new IllegalArgumentException("no callback defined");
 
         XC_MethodHook callback = (XC_MethodHook) parameterTypesAndCallback[parameterTypesAndCallback.length - 1];
+        Logger.d(TAG, "findAndHookMethod callback:" + callback);
+
         Method m = XposedHelpers.findMethodExact(clazz, methodName, parameterTypesAndCallback);
+        Logger.d(TAG, "findAndHookMethod m:" + m.toString());
         XC_MethodHook.Unhook unhook = hookMethod(m, callback);
+        Logger.d(TAG, "findAndHookMethod unhook:" + unhook);
+
         synchronized (allUnhookCallbacks) {
             allUnhookCallbacks.add(unhook);
         }
+        Logger.d(TAG, "out findAndHookMethod");
         return unhook;
     }
 
@@ -188,7 +199,7 @@ public final class DexposedBridge {
         }
         Object[] callbacksSnapshot = callbacks.getSnapshot();
         final int callbacksLength = callbacksSnapshot.length;
-        //Logger.d(TAG, "callbacksLength:" + callbacksLength +  ", this:" + thisObject + ", args:" + Arrays.toString(args));
+        //uts.Logger.d(TAG, "callbacksLength:" + callbacksLength +  ", this:" + thisObject + ", args:" + Arrays.toString(args));
         if (callbacksLength == 0) {
             try {
                 ArtMethod method = Epic.getBackMethod(artmethod);
@@ -263,7 +274,7 @@ public final class DexposedBridge {
                 final Throwable cause = throwable.getCause();
 
                 // We can not change the exception flow of origin call, rethrow
-                // Logger.e(TAG, "origin call throw exception (not a real crash, just record for debug):", cause);
+                // uts.Logger.e(TAG, "origin call throw exception (not a real crash, just record for debug):", cause);
                 DexposedBridge.<RuntimeException>throwNoCheck(param.getThrowable().getCause(), null);
                 return null; //never reach.
             } else {
@@ -273,7 +284,7 @@ public final class DexposedBridge {
             return null; // never reached.
         } else {
             final Object result = param.getResult();
-            //Logger.d(TAG, "return :" + result);
+            //uts.Logger.d(TAG, "return :" + result);
             return result;
         }
     }
@@ -353,7 +364,8 @@ public final class DexposedBridge {
             try {
                 ((XC_MethodHook) callbacksSnapshot[afterIdx]).afterHookedMethod(param);
             } catch (Throwable t) {
-                Logger.e(t);;
+                Logger.e(t);
+                ;
 
                 // reset to last result (ignoring what the unexpectedly exiting callback did)
                 if (lastThrowable == null)

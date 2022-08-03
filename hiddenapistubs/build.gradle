@@ -1,21 +1,15 @@
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+}
 
 android {
     compileSdkVersion 31
 
-    defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 31
-        versionCode 80
-        versionName "0.8.0"
+//    defaultConfig {
+//        minSdkVersion 16
+//        targetSdkVersion 31
+//    }
 
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
     dexOptions {
         preDexLibraries false
         maxProcessCount 8
@@ -61,14 +55,4 @@ tasks.withType(Javadoc) {
 }
 
 dependencies {
-//    implementation 'me.weishu.exposed:exposed-xposedapi:0.4.6' // The Xposed API
-//    implementation ('me.weishu:epic:1.0.0') { // The AOP Framework
-//        exclude group: 'me.weishu.exposed', module: 'exposed-xposedapi'
-//    }
-
-    //https://github.com/KeepSafe/ReLinker
-//    implementation 'com.getkeepsafe.relinker:relinker:1.4.5' // for load library
-    implementation project(path: ':epic-core')
-    implementation project(path: ':exposed-xposedapi')
-    implementation project(path: ':relinker-core')
 }

@@ -74,4 +74,5 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':epic-core')
     implementation 'com.qmuiteam:qmui:1.0.4'
+    implementation project(path: ':FreeReflection-core')
 }

@@ -33,17 +33,23 @@
 #include <sys/system_properties.h>
 #include <android/log.h>
 
-#define TAG_NAME    "dlfcn_ex"
+#define TAG_NAME    "epic.dlfcn"
 
-#ifdef LOG_DBG
+//#ifdef LOG_DBG
+//#define log_info(fmt, args...) __android_log_print(ANDROID_LOG_INFO, TAG_NAME, (const char *) fmt, ##args)
+//#define log_err(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG_NAME, (const char *) fmt, ##args)
+//#define log_dbg log_info
+//#else
+//#define log_dbg(...)
+//#define log_info(fmt, args...)
+//#define log_err(fmt, args...)
+//#endif
+#define log_dbg(fmt, args...) __android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, (const char *) fmt, ##args)
 #define log_info(fmt, args...) __android_log_print(ANDROID_LOG_INFO, TAG_NAME, (const char *) fmt, ##args)
 #define log_err(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG_NAME, (const char *) fmt, ##args)
-#define log_dbg log_info
-#else
-#define log_dbg(...)
-#define log_info(fmt, args...)
-#define log_err(fmt, args...)
-#endif
+#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
+#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
+#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
 
 #ifdef __LP64__
 #define Elf_Ehdr Elf64_Ehdr
@@ -158,9 +164,7 @@ static void *fake_dlopen_with_path(const char *libpath, int flags) {
     elf = 0;
 
     if (!ctx->dynstr || !ctx->dynsym) fatal("dynamic sections not found in %s", libpath);
-
 #undef fatal
-
     log_dbg("%s: ok, dynsym = %p, dynstr = %p", libpath, ctx->dynsym, ctx->dynstr);
 
     return ctx;
