@@ -2,7 +2,7 @@
 
 ## 1. EPIC功能
  发现结构的内存对象，内存捞出来。 ----【xposed-api封装】----  对应地址修改对应值
- 
+
 ## 2. 几个库的功能及依赖关系
 
 ### 几个库的功能
@@ -36,17 +36,17 @@ epic-core
 ```
 exposed-core
   |--exposed-xposedapi
-      |--hiddenapistubs (暂时合并，未来拆分)
+      |--hiddenapistubs
   |--epic-core(不包含exposed-xposedapi)
      |--FreeReflection-core
      |--exposed-xposedapi
-        |--hiddenapistubs (暂时合并，未来拆分)
+        |--hiddenapistubs
   |--relinker-core
 ```
 * exposed-xposedapi
 ```
 exposed-xposedapi
-  |--hiddenapistubs (暂时合并，未来拆分)
+  |--hiddenapistubs
 ```
 
 
