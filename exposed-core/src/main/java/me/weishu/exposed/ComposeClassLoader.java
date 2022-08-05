@@ -3,7 +3,6 @@ package me.weishu.exposed;
 /**
  * Created by weishu on 17/11/30.
  */
-
 public class ComposeClassLoader extends ClassLoader {
 
     private final ClassLoader mAppClassLoader;

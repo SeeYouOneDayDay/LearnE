@@ -14,6 +14,7 @@ import java.util.List;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import uts.XL;
 
 /**
  * Created by weishu on 18/1/5.
@@ -52,7 +53,7 @@ public class LogcatService extends Service {
                 super.run();
                 mReading = true;
                 try {
-                    Log.i(TAG, "exposed logcat start..");
+                    XL.i(TAG, "exposed logcat start..");
                     List<String> cmds = new ArrayList<String>();
                     cmds.add("sh");
                     cmds.add("-c");
@@ -62,10 +63,8 @@ public class LogcatService extends Service {
                     ProcessBuilder pb = new ProcessBuilder(cmds);
                     Process p = pb.start();
                     p.waitFor();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (Throwable e) {
+                    XL.i(TAG, Log.getStackTraceString(e));
                 }
             }
         };

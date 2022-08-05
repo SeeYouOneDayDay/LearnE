@@ -1,8 +1,8 @@
 package de.robv.android.xposed;
 
-import android.util.Log;
-
 import java.lang.reflect.Member;
+
+import uts.XL;
 
 /**
  * Created by weishu on 17/11/30.
@@ -17,8 +17,8 @@ public class ExposedHelper {
     }
 
     public static boolean isIXposedMod(Class<?> moduleClass) {
-        Log.d(TAG, "module's classLoader : " + moduleClass.getClassLoader() + ", super: " + moduleClass.getSuperclass());
-        Log.d(TAG, "IXposedMod's classLoader : " + IXposedMod.class.getClassLoader());
+        XL.d(TAG, "module's classLoader : " + moduleClass.getClassLoader() + ", super: " + moduleClass.getSuperclass());
+        XL.d(TAG, "IXposedMod's classLoader : " + IXposedMod.class.getClassLoader());
 
         return IXposedMod.class.isAssignableFrom(moduleClass);
     }
@@ -35,11 +35,11 @@ public class ExposedHelper {
         ((IXposedHookZygoteInit) moduleInstance).initZygote(param);
     }
 
-    public static void beforeHookedMethod(XC_MethodHook methodHook, XC_MethodHook.MethodHookParam param) throws Throwable{
+    public static void beforeHookedMethod(XC_MethodHook methodHook, XC_MethodHook.MethodHookParam param) throws Throwable {
         methodHook.beforeHookedMethod(param);
     }
 
-    public static void afterHookedMethod(XC_MethodHook methodHook, XC_MethodHook.MethodHookParam param) throws Throwable{
+    public static void afterHookedMethod(XC_MethodHook methodHook, XC_MethodHook.MethodHookParam param) throws Throwable {
         methodHook.afterHookedMethod(param);
     }
 }

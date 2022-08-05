@@ -27,6 +27,7 @@ import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
 import de.robv.android.xposed.callbacks.XC_InitPackageResources;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import uts.XL;
 
 /**
  * This class contains most of Xposed's central logic, such as initialization and callbacks used by
@@ -170,33 +171,6 @@ public final class XposedBridge {
     }
 
     ;
-
-    /**
-     * Writes a message to the Xposed error log.
-     *
-     * <p class="warning"><b>DON'T FLOOD THE LOG!!!</b> This is only meant for error logging.
-     * If you want to write information/debug messages, use logcat.
-     *
-     * @param text The log message.
-     */
-    public synchronized static void log(String text) {
-        if (TextUtils.isEmpty(text)) {
-            return;
-        }
-        Log.i(TAG, text);
-    }
-
-    /**
-     * Logs a stack trace to the Xposed error log.
-     *
-     * <p class="warning"><b>DON'T FLOOD THE LOG!!!</b> This is only meant for error logging.
-     * If you want to write information/debug messages, use logcat.
-     *
-     * @param t The Throwable object for the stack trace.
-     */
-    public synchronized static void log(Throwable t) {
-        Log.e(TAG, Log.getStackTraceString(t));
-    }
 
     /**
      * Hook any method (or constructor) with the specified callback. See below for some wrappers
@@ -566,4 +540,34 @@ public final class XposedBridge {
             this.returnType = returnType;
         }
     }
+
+
+
+    /**
+     * Writes a message to the Xposed error log.
+     *
+     * <p class="warning"><b>DON'T FLOOD THE LOG!!!</b> This is only meant for error logging.
+     * If you want to write information/debug messages, use logcat.
+     *
+     * @param text The log message.
+     */
+    public synchronized static void log(String text) {
+        if (TextUtils.isEmpty(text)) {
+            return;
+        }
+        XL.i(TAG, text);
+    }
+
+    /**
+     * Logs a stack trace to the Xposed error log.
+     *
+     * <p class="warning"><b>DON'T FLOOD THE LOG!!!</b> This is only meant for error logging.
+     * If you want to write information/debug messages, use logcat.
+     *
+     * @param t The Throwable object for the stack trace.
+     */
+    public synchronized static void log(Throwable t) {
+        XL.e(TAG, Log.getStackTraceString(t));
+    }
+
 }

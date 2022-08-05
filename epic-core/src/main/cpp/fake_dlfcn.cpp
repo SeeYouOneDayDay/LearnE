@@ -35,21 +35,10 @@
 
 #define TAG_NAME    "epic.dlfcn"
 
-//#ifdef LOG_DBG
-//#define log_info(fmt, args...) __android_log_print(ANDROID_LOG_INFO, TAG_NAME, (const char *) fmt, ##args)
-//#define log_err(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG_NAME, (const char *) fmt, ##args)
-//#define log_dbg log_info
-//#else
-//#define log_dbg(...)
-//#define log_info(fmt, args...)
-//#define log_err(fmt, args...)
-//#endif
-#define log_dbg(fmt, args...) __android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, (const char *) fmt, ##args)
-#define log_info(fmt, args...) __android_log_print(ANDROID_LOG_INFO, TAG_NAME, (const char *) fmt, ##args)
-#define log_err(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG_NAME, (const char *) fmt, ##args)
 #define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
 #define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
 #define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
+#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, TAG_NAME, __VA_ARGS__))
 
 #ifdef __LP64__
 #define Elf_Ehdr Elf64_Ehdr
@@ -92,7 +81,7 @@ static void *fake_dlopen_with_path(const char *libpath, int flags) {
     char *shoff;
     Elf_Ehdr *elf = (Elf_Ehdr *) MAP_FAILED;
 
-#define fatal(fmt, args...) do { log_err(fmt,##args); goto err_exit; } while(0)
+#define fatal(fmt, args...) do { LOGE(fmt,##args); goto err_exit; } while(0)
 
     maps = fopen("/proc/self/maps", "r");
     if (!maps) fatal("failed to open maps");
@@ -107,7 +96,7 @@ static void *fake_dlopen_with_path(const char *libpath, int flags) {
     if (sscanf(buff, "%lx", &load_addr) != 1)
         fatal("failed to read load address for %s", libpath);
 
-    log_info("%s loaded in Android at 0x%08lx", libpath, load_addr);
+    LOGI("%s loaded in Android at 0x%08lx", libpath, load_addr);
 
     /* Now, mmap the same library once again */
 
@@ -132,7 +121,7 @@ static void *fake_dlopen_with_path(const char *libpath, int flags) {
     for (k = 0; k < elf->e_shnum; k++, shoff += elf->e_shentsize) {
 
         Elf_Shdr *sh = (Elf_Shdr *) shoff;
-        log_dbg("%s: k=%d shdr=%p type=%x", __func__, k, sh, sh->sh_type);
+        LOGD("%s: k=%d shdr=%p type=%x", __func__, k, sh, sh->sh_type);
 
         switch (sh->sh_type) {
 
@@ -165,7 +154,7 @@ static void *fake_dlopen_with_path(const char *libpath, int flags) {
 
     if (!ctx->dynstr || !ctx->dynsym) fatal("dynamic sections not found in %s", libpath);
 #undef fatal
-    log_dbg("%s: ok, dynsym = %p, dynstr = %p", libpath, ctx->dynsym, ctx->dynstr);
+    LOGD("%s: ok, dynsym = %p, dynstr = %p", libpath, ctx->dynsym, ctx->dynstr);
 
     return ctx;
 
@@ -256,7 +245,7 @@ static void *fake_dlsym(void *handle, const char *name) {
             /*  NB: sym->st_value is an offset into the section for relocatables,
             but a VMA for shared libs or exe files, so we have to subtract the bias */
             void *ret = (char *) ctx->load_addr + sym->st_value - ctx->bias;
-            log_info("%s found at %p", name, ret);
+            LOGI("%s found at %p", name, ret);
             return ret;
         }
     return 0;
@@ -288,7 +277,7 @@ int dlclose_ex(void *handle) {
 }
 
 void *dlopen_ex(const char *filename, int flags) {
-    log_info("dlopen: %s", filename);
+    LOGI("dlopen: %s", filename);
     if (get_sdk_level() >= 24) {
         return fake_dlopen(filename, flags);
     } else {

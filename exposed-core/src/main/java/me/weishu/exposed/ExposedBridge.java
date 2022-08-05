@@ -285,22 +285,24 @@ public class ExposedBridge {
     }
 
     private static boolean ignoreHooks(Member member) {
-        if (member == null) {
-            return false;
-        }
-
-        String name = member.getDeclaringClass().getName();
-        if (QQ.equals(currentPackage)) {
-            // TODO, we just ignore this hook to avoid crash, fix it when you figure out it. (getManager)
-            if (name.contains("QQAppInterface")) {
-                // Log.i("mylog", "ignore hook for: " + member);
-                return true;
-            }
-        }
+//       //去除所有的不拦截项目
+//        if (member == null) {
+//            return false;
+//        }
+//
+//        String name = member.getDeclaringClass().getName();
+//        if (QQ.equals(currentPackage)) {
+//            // TODO, we just ignore this hook to avoid crash, fix it when you figure out it. (getManager)
+//            if (name.contains("QQAppInterface")) {
+//                // Log.i("mylog", "ignore hook for: " + member);
+//                return true;
+//            }
+//        }
 
         return false;
     }
 
+    //微信包hook前，先加载wcdb相关的类
     private static void presetMethod(Member method) {
         if (method == null) {
             return;

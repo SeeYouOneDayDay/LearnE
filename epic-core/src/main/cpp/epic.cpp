@@ -27,47 +27,54 @@
 #include "fake_dlfcn.h"
 #include "art.h"
 
-//#undef NDEBUG
-//#ifdef NDEBUG
-//#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native", __VA_ARGS__))
-//#else
-//#define LOGV(...)
-//#endif
-#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, "epic.Native.epic", __VA_ARGS__))
-#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, "epic.Native.epic", __VA_ARGS__))
-#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.Native.epic", __VA_ARGS__))
+#define TAG_NAME    "epic.native"
+#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
+#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
+#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
+#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, TAG_NAME, __VA_ARGS__))
+
 
 #define JNIHOOK_CLASS "me/weishu/epic/art/EpicNative"
 
 jobject (*addWeakGloablReference)(JavaVM *, void *, void *) = nullptr;
 
-void* (*jit_load_)(bool*) = nullptr;
-void* jit_compiler_handle_ = nullptr;
-bool (*jit_compile_method_)(void*, void*, void*, bool) = nullptr;
-void* (*JitCodeCache_GetCurrentRegion)(void*) = nullptr;
+void *(*jit_load_)(bool *) = nullptr;
+
+void *jit_compiler_handle_ = nullptr;
+
+bool (*jit_compile_method_)(void *, void *, void *, bool) = nullptr;
+
+void *(*JitCodeCache_GetCurrentRegion)(void *) = nullptr;
 
 typedef bool (*JIT_COMPILE_METHOD1)(void *, void *, void *, bool);
+
 typedef bool (*JIT_COMPILE_METHOD2)(void *, void *, void *, bool, bool); // Android Q
 typedef bool (*JIT_COMPILE_METHOD3)(void *, void *, void *, void *, bool, bool); // Android R
 typedef bool (*JIT_COMPILE_METHOD4)(void *, void *, void *, void *, int); // Android S
 
-void (*jit_unload_)(void*) = nullptr;
+void (*jit_unload_)(void *) = nullptr;
 
-class ScopedSuspendAll {};
+class ScopedSuspendAll {
+};
 
-void (*suspendAll)(ScopedSuspendAll*, char*) = nullptr;
-void (*resumeAll)(ScopedSuspendAll*) = nullptr;
+void (*suspendAll)(ScopedSuspendAll *, char *) = nullptr;
 
-class ScopedJitSuspend {};
-void (*startJit)(ScopedJitSuspend*) = nullptr;
-void (*stopJit)(ScopedJitSuspend*) = nullptr;
+void (*resumeAll)(ScopedSuspendAll *) = nullptr;
 
-void (*DisableMovingGc)(void*) = nullptr;
+class ScopedJitSuspend {
+};
 
-void* (*JniIdManager_DecodeMethodId_)(void*, jlong) = nullptr;
-void* (*ClassLinker_MakeInitializedClassesVisiblyInitialized_)(void*, void*, bool) = nullptr;
+void (*startJit)(ScopedJitSuspend *) = nullptr;
 
-void* __self() {
+void (*stopJit)(ScopedJitSuspend *) = nullptr;
+
+void (*DisableMovingGc)(void *) = nullptr;
+
+void *(*JniIdManager_DecodeMethodId_)(void *, jlong) = nullptr;
+
+void *(*ClassLinker_MakeInitializedClassesVisiblyInitialized_)(void *, void *, bool) = nullptr;
+
+void *__self() {
 
 #ifdef __arm__
     register uint32_t r9 asm("r9");
@@ -77,14 +84,15 @@ void* __self() {
     return (void*) x19;
 #else
 #endif
-
 };
 
 static int api_level;
 
 void init_entries(JNIEnv *env) {
+    // get device version
     char api_level_str[5];
     __system_property_get("ro.build.version.sdk", api_level_str);
+    //int atoi (const char * str); 字符串转int
     api_level = atoi(api_level_str);
     LOGV("api level: %d", api_level);
     ArtHelper::init(env, api_level);
@@ -107,29 +115,39 @@ void init_entries(JNIEnv *env) {
         const char *addWeakGloablReferenceSymbol = api_level <= 25
                                                    ? "_ZN3art9JavaVMExt16AddWeakGlobalRefEPNS_6ThreadEPNS_6mirror6ObjectE"
                                                    : "_ZN3art9JavaVMExt16AddWeakGlobalRefEPNS_6ThreadENS_6ObjPtrINS_6mirror6ObjectEEE";
-        addWeakGloablReference = (jobject (*)(JavaVM *, void *, void *)) dlsym_ex(handle, addWeakGloablReferenceSymbol);
+        addWeakGloablReference = (jobject (*)(JavaVM *, void *, void *)) dlsym_ex(handle,
+                                                                                  addWeakGloablReferenceSymbol);
 
-        jit_compile_method_ = (bool (*)(void *, void *, void *, bool)) dlsym_ex(jit_lib, "jit_compile_method");
-        jit_load_ = reinterpret_cast<void* (*)(bool*)>(dlsym_ex(jit_lib, "jit_load"));
+        jit_compile_method_ = (bool (*)(void *, void *, void *, bool)) dlsym_ex(jit_lib,
+                                                                                "jit_compile_method");
+        jit_load_ = reinterpret_cast<void *(*)(bool *)>(dlsym_ex(jit_lib, "jit_load"));
         bool generate_debug_info = false;
         jit_compiler_handle_ = (jit_load_)(&generate_debug_info);
         LOGV("jit compile_method: %p", jit_compile_method_);
 
-        suspendAll = reinterpret_cast<void (*)(ScopedSuspendAll*, char*)>(dlsym_ex(handle, "_ZN3art16ScopedSuspendAllC1EPKcb"));
-        resumeAll = reinterpret_cast<void (*)(ScopedSuspendAll*)>(dlsym_ex(handle, "_ZN3art16ScopedSuspendAllD1Ev"));
+        suspendAll = reinterpret_cast<void (*)(ScopedSuspendAll *, char *)>(dlsym_ex(handle,
+                                                                                     "_ZN3art16ScopedSuspendAllC1EPKcb"));
+        resumeAll = reinterpret_cast<void (*)(ScopedSuspendAll *)>(dlsym_ex(handle,
+                                                                            "_ZN3art16ScopedSuspendAllD1Ev"));
 
         if (api_level >= 30) {
             // Android R would not directly return ArtMethod address but an internal id
-            ClassLinker_MakeInitializedClassesVisiblyInitialized_ = reinterpret_cast<void* (*)(void*, void*, bool)>(dlsym_ex(handle, "_ZN3art11ClassLinker40MakeInitializedClassesVisiblyInitializedEPNS_6ThreadEb"));
-            JniIdManager_DecodeMethodId_ = reinterpret_cast<void* (*)(void*, jlong)>(dlsym_ex(handle, "_ZN3art3jni12JniIdManager14DecodeMethodIdEP10_jmethodID"));
+            ClassLinker_MakeInitializedClassesVisiblyInitialized_ = reinterpret_cast<void *(*)(
+                    void *, void *, bool)>(dlsym_ex(handle,
+                                                    "_ZN3art11ClassLinker40MakeInitializedClassesVisiblyInitializedEPNS_6ThreadEb"));
+            JniIdManager_DecodeMethodId_ = reinterpret_cast<void *(*)(void *, jlong)>(dlsym_ex(
+                    handle, "_ZN3art3jni12JniIdManager14DecodeMethodIdEP10_jmethodID"));
             if (api_level >= 31) {
                 // Android S CompileMethod accepts a CompilationKind enum instead of two booleans
                 // source: https://android.googlesource.com/platform/art/+/refs/heads/android12-release/compiler/jit/jit_compiler.cc
-                jit_compile_method_ = (bool (*)(void *, void *, void *, bool)) dlsym_ex(jit_lib, "_ZN3art3jit11JitCompiler13CompileMethodEPNS_6ThreadEPNS0_15JitMemoryRegionEPNS_9ArtMethodENS_15CompilationKindE");
+                jit_compile_method_ = (bool (*)(void *, void *, void *, bool)) dlsym_ex(jit_lib,
+                                                                                        "_ZN3art3jit11JitCompiler13CompileMethodEPNS_6ThreadEPNS0_15JitMemoryRegionEPNS_9ArtMethodENS_15CompilationKindE");
             } else {
-                jit_compile_method_ = (bool (*)(void *, void *, void *, bool)) dlsym_ex(jit_lib, "_ZN3art3jit11JitCompiler13CompileMethodEPNS_6ThreadEPNS0_15JitMemoryRegionEPNS_9ArtMethodEbb");
+                jit_compile_method_ = (bool (*)(void *, void *, void *, bool)) dlsym_ex(jit_lib,
+                                                                                        "_ZN3art3jit11JitCompiler13CompileMethodEPNS_6ThreadEPNS0_15JitMemoryRegionEPNS_9ArtMethodEbb");
             }
-            JitCodeCache_GetCurrentRegion = (void* (*)(void*)) dlsym_ex(handle, "_ZN3art3jit12JitCodeCache16GetCurrentRegionEv");
+            JitCodeCache_GetCurrentRegion = (void *(*)(void *)) dlsym_ex(handle,
+                                                                         "_ZN3art3jit12JitCodeCache16GetCurrentRegionEv");
         }
         // Disable this now.
         // startJit = reinterpret_cast<void(*)(ScopedJitSuspend*)>(dlsym_ex(handle, "_ZN3art3jit16ScopedJitSuspendD1Ev"));
@@ -142,33 +160,39 @@ void init_entries(JNIEnv *env) {
 }
 
 jboolean epic_compile(JNIEnv *env, jclass, jobject method, jlong self) {
-    LOGV("self from native peer: %p, from register: %p", reinterpret_cast<void*>(self), __self());
+    LOGV("self from native peer: %p, from register: %p", reinterpret_cast<void *>(self), __self());
     jlong art_method = (jlong) env->FromReflectedMethod(method);
     if (art_method % 2 == 1) {
-        art_method = reinterpret_cast<jlong>(JniIdManager_DecodeMethodId_(ArtHelper::getJniIdManager(), art_method));
+        art_method = reinterpret_cast<jlong>(JniIdManager_DecodeMethodId_(
+                ArtHelper::getJniIdManager(), art_method));
     }
     bool ret;
     if (api_level >= 30) {
-        void* current_region = JitCodeCache_GetCurrentRegion(ArtHelper::getJitCodeCache());
+        void *current_region = JitCodeCache_GetCurrentRegion(ArtHelper::getJitCodeCache());
         if (api_level >= 31) {
-            ret = ((JIT_COMPILE_METHOD4)jit_compile_method_)(jit_compiler_handle_, reinterpret_cast<void*>(self),
-                                                             reinterpret_cast<void*>(current_region),
-                                                             reinterpret_cast<void*>(art_method), 1);
+            ret = ((JIT_COMPILE_METHOD4) jit_compile_method_)(jit_compiler_handle_,
+                                                              reinterpret_cast<void *>(self),
+                                                              reinterpret_cast<void *>(current_region),
+                                                              reinterpret_cast<void *>(art_method),
+                                                              1);
         } else {
-            ret = ((JIT_COMPILE_METHOD3)jit_compile_method_)(jit_compiler_handle_, reinterpret_cast<void*>(self),
-                                                             reinterpret_cast<void*>(current_region),
-                                                             reinterpret_cast<void*>(art_method), false, false);
+            ret = ((JIT_COMPILE_METHOD3) jit_compile_method_)(jit_compiler_handle_,
+                                                              reinterpret_cast<void *>(self),
+                                                              reinterpret_cast<void *>(current_region),
+                                                              reinterpret_cast<void *>(art_method),
+                                                              false, false);
         }
     } else if (api_level >= 29) {
         ret = ((JIT_COMPILE_METHOD2) jit_compile_method_)(jit_compiler_handle_,
                                                           reinterpret_cast<void *>(art_method),
-                                                          reinterpret_cast<void *>(self), false, false);
+                                                          reinterpret_cast<void *>(self), false,
+                                                          false);
     } else {
         ret = ((JIT_COMPILE_METHOD1) jit_compile_method_)(jit_compiler_handle_,
                                                           reinterpret_cast<void *>(art_method),
                                                           reinterpret_cast<void *>(self), false);
     }
-    return (jboolean)ret;
+    return (jboolean) ret;
 }
 
 jlong epic_suspendAll(JNIEnv *, jclass) {
@@ -177,30 +201,30 @@ jlong epic_suspendAll(JNIEnv *, jclass) {
     return reinterpret_cast<jlong >(scopedSuspendAll);
 }
 
-void epic_resumeAll(JNIEnv* env, jclass, jlong obj) {
-    ScopedSuspendAll* scopedSuspendAll = reinterpret_cast<ScopedSuspendAll*>(obj);
+void epic_resumeAll(JNIEnv *env, jclass, jlong obj) {
+    ScopedSuspendAll *scopedSuspendAll = reinterpret_cast<ScopedSuspendAll *>(obj);
     resumeAll(scopedSuspendAll);
 }
 
-jlong epic_stopJit(JNIEnv*, jclass) {
+jlong epic_stopJit(JNIEnv *, jclass) {
     ScopedJitSuspend *scopedJitSuspend = (ScopedJitSuspend *) malloc(sizeof(ScopedJitSuspend));
     stopJit(scopedJitSuspend);
     return reinterpret_cast<jlong >(scopedJitSuspend);
 }
 
-void epic_startJit(JNIEnv*, jclass, jlong obj) {
+void epic_startJit(JNIEnv *, jclass, jlong obj) {
     ScopedJitSuspend *scopedJitSuspend = reinterpret_cast<ScopedJitSuspend *>(obj);
     startJit(scopedJitSuspend);
 }
 
-void epic_disableMovingGc(JNIEnv* env, jclass ,jint api) {
+void epic_disableMovingGc(JNIEnv *env, jclass, jint api) {
     void *heap = ArtHelper::getHeap();
     DisableMovingGc(heap);
 }
 
 jboolean epic_munprotect(JNIEnv *env, jclass, jlong addr, jlong len) {
     long pagesize = sysconf(_SC_PAGESIZE);
-    unsigned alignment = (unsigned)((unsigned long long)addr % pagesize);
+    unsigned alignment = (unsigned) ((unsigned long long) addr % pagesize);
     LOGV("munprotect page size: %d, alignment: %d", pagesize, alignment);
 
     int i = mprotect((void *) (addr - alignment), (size_t) (alignment + len),
@@ -229,9 +253,11 @@ jboolean epic_cacheflush(JNIEnv *env, jclass, jlong addr, jlong len) {
 }
 
 void epic_MakeInitializedClassVisibilyInitialized(JNIEnv *env, jclass, jlong self) {
-  if (api_level >= 30 && ClassLinker_MakeInitializedClassesVisiblyInitialized_ && ArtHelper::getClassLinker()) {
-    ClassLinker_MakeInitializedClassesVisiblyInitialized_(ArtHelper::getClassLinker(), reinterpret_cast<void*>(self), true);
-  }
+    if (api_level >= 30 && ClassLinker_MakeInitializedClassesVisiblyInitialized_ &&
+        ArtHelper::getClassLinker()) {
+        ClassLinker_MakeInitializedClassesVisiblyInitialized_(ArtHelper::getClassLinker(),
+                                                              reinterpret_cast<void *>(self), true);
+    }
 }
 
 void epic_memcpy(JNIEnv *env, jclass, jlong src, jlong dest, jint length) {
@@ -298,7 +324,7 @@ jlong epic_malloc(JNIEnv *env, jclass, jint size) {
 jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
     JavaVM *vm;
     env->GetJavaVM(&vm);
-    LOGV("java vm: %p, self: %p, address: %p", vm, (void*) self, (void*) address);
+    LOGV("java vm: %p, self: %p, address: %p", vm, (void *) self, (void *) address);
     jobject object = addWeakGloablReference(vm, (void *) self, (void *) address);
 
     return object;
@@ -307,7 +333,8 @@ jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
 jlong epic_getMethodAddress(JNIEnv *env, jclass clazz, jobject method) {
     jlong art_method = (jlong) env->FromReflectedMethod(method);
     if (art_method % 2 == 1) {
-        art_method = reinterpret_cast<jlong>(JniIdManager_DecodeMethodId_(ArtHelper::getJniIdManager(), art_method));
+        art_method = reinterpret_cast<jlong>(JniIdManager_DecodeMethodId_(
+                ArtHelper::getJniIdManager(), art_method));
     }
     return art_method;
 }
@@ -316,8 +343,9 @@ jboolean epic_isGetObjectAvaliable(JNIEnv *, jclass) {
     return (jboolean) (addWeakGloablReference != nullptr);
 }
 
-jboolean epic_activate(JNIEnv* env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong sizeOfDirectJump,
-                       jlong sizeOfBridgeJump, jbyteArray code) {
+jboolean
+epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong sizeOfDirectJump,
+              jlong sizeOfBridgeJump, jbyteArray code) {
 
     // fetch the array, we can not call this when thread suspend(may lead deadlock)
     jbyte *srcPnt = env->GetByteArrayElements(code, 0);
@@ -366,25 +394,25 @@ jboolean epic_activate(JNIEnv* env, jclass jclazz, jlong jumpToAddress, jlong pc
 
 static JNINativeMethod dexposedMethods[] = {
 
-        {"mmap",              "(I)J",                          (void *) epic_mmap},
-        {"munmap",            "(JI)Z",                         (void *) epic_munmap},
-        {"memcpy",            "(JJI)V",                        (void *) epic_memcpy},
-        {"memput",            "([BJ)V",                        (void *) epic_memput},
-        {"memget",            "(JI)[B",                        (void *) epic_memget},
-        {"munprotect",        "(JJ)Z",                         (void *) epic_munprotect},
-        {"getMethodAddress",  "(Ljava/lang/reflect/Member;)J", (void *) epic_getMethodAddress},
-        {"cacheflush",        "(JJ)Z",                         (void *) epic_cacheflush},
-        {"MakeInitializedClassVisibilyInitialized", "(J)V",    (void *) epic_MakeInitializedClassVisibilyInitialized},
-        {"malloc",            "(I)J",                          (void *) epic_malloc},
-        {"getObjectNative",   "(JJ)Ljava/lang/Object;",        (void *) epic_getobject},
-        {"compileMethod",     "(Ljava/lang/reflect/Member;J)Z",(void *) epic_compile},
-        {"suspendAll",        "()J",                           (void *) epic_suspendAll},
-        {"resumeAll",         "(J)V",                          (void *) epic_resumeAll},
-        {"stopJit",           "()J",                           (void *) epic_stopJit},
-        {"startJit",          "(J)V",                          (void *) epic_startJit},
-        {"disableMovingGc",   "(I)V",                          (void *) epic_disableMovingGc},
-        {"activateNative",    "(JJJJ[B)Z",                     (void *) epic_activate},
-        {"isGetObjectAvailable", "()Z",                        (void *) epic_isGetObjectAvaliable}
+        {"mmap",                                    "(I)J",                           (void *) epic_mmap},
+        {"munmap",                                  "(JI)Z",                          (void *) epic_munmap},
+        {"memcpy",                                  "(JJI)V",                         (void *) epic_memcpy},
+        {"memput",                                  "([BJ)V",                         (void *) epic_memput},
+        {"memget",                                  "(JI)[B",                         (void *) epic_memget},
+        {"munprotect",                              "(JJ)Z",                          (void *) epic_munprotect},
+        {"getMethodAddress",                        "(Ljava/lang/reflect/Member;)J",  (void *) epic_getMethodAddress},
+        {"cacheflush",                              "(JJ)Z",                          (void *) epic_cacheflush},
+        {"MakeInitializedClassVisibilyInitialized", "(J)V",                           (void *) epic_MakeInitializedClassVisibilyInitialized},
+        {"malloc",                                  "(I)J",                           (void *) epic_malloc},
+        {"getObjectNative",                         "(JJ)Ljava/lang/Object;",         (void *) epic_getobject},
+        {"compileMethod",                           "(Ljava/lang/reflect/Member;J)Z", (void *) epic_compile},
+        {"suspendAll",                              "()J",                            (void *) epic_suspendAll},
+        {"resumeAll",                               "(J)V",                           (void *) epic_resumeAll},
+        {"stopJit",                                 "()J",                            (void *) epic_stopJit},
+        {"startJit",                                "(J)V",                           (void *) epic_startJit},
+        {"disableMovingGc",                         "(I)V",                           (void *) epic_disableMovingGc},
+        {"activateNative",                          "(JJJJ[B)Z",                      (void *) epic_activate},
+        {"isGetObjectAvailable",                    "()Z",                            (void *) epic_isGetObjectAvaliable}
 };
 
 static int registerNativeMethods(JNIEnv *env, const char *className,
