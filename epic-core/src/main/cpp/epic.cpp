@@ -27,6 +27,12 @@
 #include "fake_dlfcn.h"
 #include "art.h"
 
+////#define TAG_NAME    "epic.native"
+//#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, "epic.native", __VA_ARGS__))
+//#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, "epic.native", __VA_ARGS__))
+//#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "epic.native", __VA_ARGS__))
+//#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, "epic.native", __VA_ARGS__))
+
 #define TAG_NAME    "epic.native"
 #define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
 #define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))

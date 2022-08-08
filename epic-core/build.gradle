@@ -18,6 +18,7 @@ android {
             cmake {
                 cppFlags "-std=c++11"
                 // arguments "-DANDROID_TOOLCHAIN=gcc"
+                 arguments "-Wwritable-strings -Wformat"
             }
         }
     }

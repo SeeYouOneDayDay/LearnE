@@ -210,7 +210,6 @@ public class ClassUtils {
             }
         }
         return lss;
-
     }
 
     /**
@@ -539,7 +538,7 @@ public class ClassUtils {
         }
         if (className.startsWith("L")) {
             className = className.substring(1, className.endsWith(";") ? className.length() - 1 : className.length());
-        } else if (!className.isEmpty()) {
+        } else if (!isEmpty(className)) {
             className = reverseAbbreviationMap.get(className.substring(0, 1));
         }
         final StringBuilder canonicalClassNameBuffer = new StringBuilder(className);
