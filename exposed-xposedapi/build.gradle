@@ -13,11 +13,6 @@ android {
         consumerProguardFiles "consumer-rules.pro"
     }
 
-//    sourceSets {
-//        main {
-//            java.srcDirs += ['src/main/apacheCommonsLang']
-//        }
-//    }
     buildTypes {
         release {
             minifyEnabled false
