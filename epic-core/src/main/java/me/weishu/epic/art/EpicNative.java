@@ -16,22 +16,24 @@
 
 package me.weishu.epic.art;
 
-import utils.DeviceCheck;
-import utils.Debug;
-import utils.Logger;
-import utils.Unsafe;
+import static utils.Debug.addrHex;
 
 import java.lang.reflect.Member;
 
 import de.robv.android.xposed.XposedHelpers;
-
-import static utils.Debug.addrHex;
+import utils.Debug;
+import utils.DeviceCheck;
+import utils.Logger;
+import utils.Unsafe;
 
 
 public final class EpicNative {
 
     private static final String TAG = "JEpicNative";
     private static volatile boolean useUnsafe = false;
+    public static boolean isUseUnsafe (){
+        return useUnsafe;
+    }
     static {
         try {
             System.loadLibrary("epic");
@@ -66,10 +68,13 @@ public final class EpicNative {
 
     private static native boolean isGetObjectAvailable();
 
+
     public static Object getObject(long self, long address) {
         if (useUnsafe) {
+            Logger.d(TAG,"使用Unsafe方式获取对象");
             return Unsafe.getObject(address);
         } else {
+            Logger.d(TAG,"使用native方式获取对象");
             return getObjectNative(self, address);
         }
     }
@@ -117,11 +122,22 @@ public final class EpicNative {
     private EpicNative() {
     }
 
+
+    /**
+     *  Thread
+     *      private volatile long nativePeer;
+     *  对本机线程对象的引用。
+     *  如果本机线程尚未创建/启动或已被销毁，则为 0。
+     * @param method
+     * @return
+     */
+
     public static boolean compileMethod(Member method) {
         final long nativePeer = XposedHelpers.getLongField(Thread.currentThread(), "nativePeer");
         return compileMethod(method, nativePeer);
     }
 
+    //通过地址获取对象
     public static Object getObject(long address) {
         final long nativePeer = XposedHelpers.getLongField(Thread.currentThread(), "nativePeer");
         return getObject(nativePeer, address);

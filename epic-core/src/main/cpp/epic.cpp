@@ -330,7 +330,7 @@ jlong epic_malloc(JNIEnv *env, jclass, jint size) {
 jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
     JavaVM *vm;
     env->GetJavaVM(&vm);
-    LOGV("java vm: %p, self: %p, address: %p", vm, (void *) self, (void *) address);
+    LOGD("epic_getobject java vm: %p, self: %p, address: %p", vm, (void *) self, (void *) address);
     jobject object = addWeakGloablReference(vm, (void *) self, (void *) address);
 
     return object;

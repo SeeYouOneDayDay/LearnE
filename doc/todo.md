@@ -23,6 +23,7 @@
     - 根据targetSdkVersion和设备sdk组合起来，借助JavaVM(`JNIEnv *env->GetJavaVM`)计算出对应的Runtime指针
 * `relinker-core`: 加载SO库,解决部分版本加载失败的问题
 
+
 ### 依赖关系
 
 * epic-core
@@ -57,7 +58,7 @@ exposed-xposedapi
 反射、越权访问是否可以考虑修改`ApplicationInfo.ApiEnforcementPolicy` 。
     地址: https://android.googlesource.com/platform/art/+/master/runtime/hidden_api.h
 
-``` h
+``` c++
 // Hidden API enforcement policy
 // This must be kept in sync with ApplicationInfo.ApiEnforcementPolicy in
 // frameworks/base/core/java/android/content/pm/ApplicationInfo.java
@@ -70,3 +71,11 @@ kMax = kEnabled,
 ```
 
 ### 二: 内存捞取、修改是否可以迁移至Java层？
+
+### 三: `relinker-core`是否支持热更新加载SO?
+
+* `0-1加载`:
+* `1-2更新`:
+### 四: Thread.nativePeer解析
+* Java`private volatile long nativePeer;`
+  - 官方注释: 对本机线程对象的引用。 如果本机线程尚未创建/启动或已被销毁，则为 0。

@@ -613,32 +613,49 @@ public class UnsafeHelper {
             return -1;
         }
     }
-//
-//    /**
-//     * get Object from address, refer: http://mishadoff.com/blog/java-magic-part-4-sun-dot-misc-dot-unsafe/
-//     * @param address the address of a object.
-//     * @return
-//     */
-//    public static Object getObject(long address) {
-//        Object[] array = new Object[]{null};
+//    public static long location(Object object){
+//        Object[] array = new Object[] {object};
 //        long baseOffset = arrayBaseOffset(Object[].class);
-//        if (is64Bit()) {
-//            putLong(array, baseOffset, address);
-//        } else {
-//            putInt(array, baseOffset, (int) address);
+//        int addressSize = addressSize();
+//        long location;
+//        switch (addressSize) {
+//            case 4:
+//                location = getInt(array, baseOffset);
+//                break;
+//            case 8:
+//                location = getLong(array, baseOffset);
+//                break;
+//            default:
+//                return 0;
 //        }
-//        return array[0];
+//        return (location);
 //    }
-//
-//    private static boolean is64Bit() {
-//        try {
-//          return  (boolean) Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("is64Bit").invoke(Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("getRuntime").invoke(null));
-//        } catch (Throwable e) {
-//           e(e);
-//        }
-//        return false;
-//
-//    }
+    /**
+     * get Object from address, refer: http://mishadoff.com/blog/java-magic-part-4-sun-dot-misc-dot-unsafe/
+     * @param address the address of a object.
+     * @return
+     */
+    public static Object getObject(long address) {
+        Object[] array = new Object[]{null};
+        long baseOffset = arrayBaseOffset(Object[].class);
+        Logger.d("getObject() is64Bit: "+is64Bit());
+        if (is64Bit()) {
+            putLong(array, baseOffset, address);
+        } else {
+            putInt(array, baseOffset, (int) address);
+        }
+        return array[0];
+    }
+
+    private static boolean is64Bit() {
+        try {
+          return  (boolean) Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("is64Bit").invoke(Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("getRuntime").invoke(null));
+        } catch (Throwable e) {
+           e(e);
+        }
+        return false;
+
+    }
 /************************会崩库crash******************/
     /**
      * 获取对象的内存地址
@@ -647,21 +664,37 @@ public class UnsafeHelper {
      */
     public static long toAddress(Object obj) {
         Object[] array = new Object[]{obj};
-        long baseOffset = arrayBaseOffset(Object[].class);
-        return normalize(getInt(array, baseOffset));
-    }
-//
-//    /**
-//     * 获取对应内存地址的对象
-//     * @param address
-//     * @return
-//     */
-//    public static Object fromAddress(long address) {
-//        Object[] array = new Object[]{null};
 //        long baseOffset = arrayBaseOffset(Object[].class);
+//        return normalize(getInt(array, baseOffset));
+
+        Logger.d("toAddress() arrayIndexScale: "+arrayIndexScale(Object[].class));
+        //返回数组中一个元素占用的大小
+        if (arrayIndexScale(Object[].class) == 8) {
+            return getLong(array, arrayBaseOffset(Object[].class));
+        } else {
+            return 0xffffffffL & getInt(array, arrayBaseOffset(Object[].class));
+        }
+    }
+
+    /**
+     * 获取对应内存地址的对象
+     * @param address
+     * @return
+     */
+    public static Object fromAddress(long address) {
+        Object[] array = new Object[]{null};
+        long baseOffset = arrayBaseOffset(Object[].class);
+        // 原来偏移值未考虑32/64区别
 //        putLong(array, baseOffset, address);
 //        return array[0];
-//    }
+        Logger.d("fromAddress() arrayIndexScale: "+arrayIndexScale(Object[].class));
+        if (arrayIndexScale(Object[].class) == 8) {
+            putLong(array, baseOffset, address);
+        }else{
+            putInt(array, baseOffset, (int) address);
+        }
+        return array[0];
+    }
 
 
 //    /**
