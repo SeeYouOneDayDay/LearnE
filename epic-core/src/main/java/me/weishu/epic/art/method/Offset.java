@@ -18,14 +18,13 @@ package me.weishu.epic.art.method;
 
 import android.os.Build;
 
-import utils.Debug;
-import utils.Logger;
-import utils.Runtime;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import me.weishu.epic.art.EpicNative;
+import utils.Debug;
+import utils.Logger;
+import utils.Runtime;
 
 /**
  * The Offset of field in an ArtMethod
@@ -108,6 +107,7 @@ class Offset {
         EpicNative.put(bytes, address);
     }
 
+    // @TODO 这个偏移怎么来的呀。
     private static void initFields() {
         ART_QUICK_CODE_OFFSET = new Offset();
         ART_ACCESS_FLAG_OFFSET = new Offset();
