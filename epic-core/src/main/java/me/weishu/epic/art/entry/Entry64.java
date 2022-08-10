@@ -18,8 +18,6 @@ package me.weishu.epic.art.entry;
 
 import android.util.Log;
 
-import utils.Logger;
-
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -31,6 +29,7 @@ import de.robv.android.xposed.DexposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.Epic;
 import me.weishu.epic.art.EpicNative;
+import utils.Logger;
 
 @SuppressWarnings({"unused", "ConstantConditions"})
 public class Entry64 {
@@ -83,7 +82,7 @@ public class Entry64 {
     private static void voidBridge(long r1, long self, long struct, long x4, long x5, long x6, long x7) {
 
         Logger.d(TAG, "inside voidBridge");
-         referenceBridge(r1, self, struct, x4, x5, x6, x7);
+        referenceBridge(r1, self, struct, x4, x5, x6, x7);
     }
 
     private static boolean booleanBridge(long r1, long self, long struct, long x4, long x5, long x6, long x7) {
@@ -120,7 +119,7 @@ public class Entry64 {
     //endregion
 
     private static Object referenceBridge(long x1, long self, long struct, long x4, long x5, long x6, long x7) {
-        Logger.d(TAG,Log.getStackTraceString(new Throwable("----referenceBridge---")));
+        Logger.d(TAG, Log.getStackTraceString(new Throwable("----仅仅是测试，用于堆栈打印 referenceBridge---")));
         Logger.i(TAG, "enter bridge function.");
 
         // struct {
@@ -280,6 +279,7 @@ public class Entry64 {
     }
 
     private static Map<Class<?>, String> bridgeMethodMap = new HashMap<>();
+
     static {
         Class<?>[] primitiveTypes = new Class[]{boolean.class, byte.class, char.class, short.class,
                 int.class, long.class, float.class, double.class};

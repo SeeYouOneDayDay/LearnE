@@ -22,23 +22,21 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import me.weishu.epic.BuildConfig;
 import me.weishu.epic.art.method.ArtMethod;
 
 public final class Debug {
-    private static final String TAG = "Dexposed";
+    private static final String TAG = "Debug";
 
-    public static final boolean DEBUG = BuildConfig.DEBUG;
-
-    private static final String RELASE_WRAN_STRING = "none in release mode.";
+//    public static final boolean DEBUG = BuildConfig.DEBUG;
+//    private static final String RELASE_WRAN_STRING = "none in release mode.";
 
     private Debug() {
     }
 
     public static String addrHex(long i) {
-        if (!DEBUG) {
-            return RELASE_WRAN_STRING;
-        }
+//        if (!DEBUG) {
+//            return RELASE_WRAN_STRING;
+//        }
 
         if (Runtime.is64Bit()) {
             return longHex(i);
@@ -74,9 +72,9 @@ public final class Debug {
     }
 
     public static String hexdump(byte[] bytes, long start) {
-        if (!DEBUG) {
-            return RELASE_WRAN_STRING;
-        }
+//        if (!DEBUG) {
+//            return RELASE_WRAN_STRING;
+//        }
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < bytes.length; i++) {
             if (i % 8 == 0) {
@@ -105,7 +103,7 @@ public final class Debug {
                 Logger.i(TAG, line);
             }
         } catch (IOException e) {
-            Logger.e(TAG, "dumpMaps error",e);
+            Logger.e(TAG, "dumpMaps error", e);
         } finally {
             if (br != null) {
                 try {

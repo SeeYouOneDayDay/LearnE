@@ -171,8 +171,9 @@ void init_entries(JNIEnv *env) {
 }
 
 jboolean epic_compile(JNIEnv *env, jclass, jobject method, jlong self) {
-    LOGV("self from native peer: %p, from register: %p", reinterpret_cast<void *>(self), __self());
+    LOGV("epic_compile() self from native peer: %p, from register: %p", reinterpret_cast<void *>(self), __self());
     jlong art_method = (jlong) env->FromReflectedMethod(method);
+
     if (art_method % 2 == 1) {
         art_method = reinterpret_cast<jlong>(JniIdManager_DecodeMethodId_(
                 ArtHelper::getJniIdManager(), art_method));
@@ -280,12 +281,14 @@ void epic_memcpy(JNIEnv *env, jclass, jlong src, jlong dest, jint length) {
 }
 
 void epic_memput(JNIEnv *env, jclass, jbyteArray src, jlong dest) {
-
+    // 获取列表第一个元素
     jbyte *srcPnt = env->GetByteArrayElements(src, 0);
+    // 获取列表大小
     jsize length = env->GetArrayLength(src);
+    // 获取目标指针
     unsigned char *destPnt = (unsigned char *) dest;
     for (int i = 0; i < length; ++i) {
-        // LOGV("put %d with %d", i, *(srcPnt + i));
+         LOGV("epic_memput() put %d with %d", i, *(srcPnt + i));
         destPnt[i] = (unsigned char) srcPnt[i];
     }
     env->ReleaseByteArrayElements(src, srcPnt, 0);
@@ -293,18 +296,33 @@ void epic_memput(JNIEnv *env, jclass, jbyteArray src, jlong dest) {
 
 jbyteArray epic_memget(JNIEnv *env, jclass, jlong src, jint length) {
 
+    // 新建对应长度的array
     jbyteArray dest = env->NewByteArray(length);
     if (dest == NULL) {
         return NULL;
     }
+    LOGD("epic_memget() , src: %ld, length: %ld ", src, length);
+
+    // 获取array的第一个元素。第一个元素存放对应内容， why?
     unsigned char *destPnt = (unsigned char *) env->GetByteArrayElements(dest, 0);
+    // 读取对应地址内容。确保是无符号的指针
     unsigned char *srcPnt = (unsigned char *) src;
+    // 根据传递长度进行挨个复制
     for (int i = 0; i < length; ++i) {
         destPnt[i] = srcPnt[i];
     }
+    //释放. what.
     env->ReleaseByteArrayElements(dest, (jbyte *) destPnt, 0);
-
+    LOGD("epic_memget() , dest: %p, destPnt: %p, srcPnt: %p ", (void *)dest, destPnt,srcPnt);
     return dest;
+}
+jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
+    JavaVM *vm;
+    env->GetJavaVM(&vm);
+    LOGD("epic_getobject java vm: %p, self: %p, address: %p", vm, (void *) self, (void *) address);
+    jobject object = addWeakGloablReference(vm, (void *) self, (void *) address);
+
+    return object;
 }
 
 jlong epic_mmap(JNIEnv *env, jclass, jint length) {
@@ -329,16 +347,6 @@ jlong epic_malloc(JNIEnv *env, jclass, jint size) {
     void *ptr = malloc(length);
     LOGV("malloc :%d of memory at: %p", (int) length, ptr);
     return (jlong) ptr;
-}
-
-
-jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
-    JavaVM *vm;
-    env->GetJavaVM(&vm);
-    LOGD("epic_getobject java vm: %p, self: %p, address: %p", vm, (void *) self, (void *) address);
-    jobject object = addWeakGloablReference(vm, (void *) self, (void *) address);
-
-    return object;
 }
 
 jlong epic_getMethodAddress(JNIEnv *env, jclass clazz, jobject method) {

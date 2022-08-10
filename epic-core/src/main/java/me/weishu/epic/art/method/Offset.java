@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import me.weishu.epic.art.EpicNative;
-import utils.Debug;
 import utils.Logger;
 import utils.Runtime;
 
@@ -34,17 +33,17 @@ class Offset {
     private static final String TAG = "Offset";
 
     /**
-     * the offset of the entry point
+     * the offset of the entry point. 入口点的偏移量
      */
     static Offset ART_QUICK_CODE_OFFSET;
 
     /**
-     * the offset of the access flag
+     * the offset of the access flag. 访问标志的偏移量
      */
     static Offset ART_ACCESS_FLAG_OFFSET;
 
     /**
-     * the offset of a jni entry point
+     * the offset of a jni entry point. jni 入口点的偏移量
      */
     static Offset ART_JNI_ENTRY_OFFSET;
 
@@ -83,27 +82,39 @@ class Offset {
     }
 
     public static long read(long base, Offset offset) {
+        Logger.i(TAG, "read() 入参打印 base:" + base + " , offset:" + offset.offset + " , address: " + (base + offset.offset) + " ； width: " + offset.length.width);
         long address = base + offset.offset;
         byte[] bytes = EpicNative.get(address, offset.length.width);
+        Logger.i(TAG, "offsetLen: " + offset.length.width + "-----DWORD:" + BitWidth.DWORD.width);
         if (offset.length == BitWidth.DWORD) {
+            Logger.i("-------AAAAA------");
             return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
         } else {
+            Logger.i("-------BBBBB------");
             return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getLong();
         }
     }
 
     public static void write(long base, Offset offset, long value) {
+
         long address = base + offset.offset;
+        Logger.i(TAG, "write()  base:"+base+" ,offset: "+ offset.offset +"----value:"+value+"-----address:"+address);
         byte[] bytes;
+        Logger.i(TAG, "write()  offsetLen:"+offset.length.width+" ,DWORD: "+ BitWidth.DWORD.width);
+
         if (offset.length == BitWidth.DWORD) {
             if (value > 0xFFFFFFFFL) {
+                Logger.e(TAG, "write()  overflow may occur will exception ");
                 throw new IllegalStateException("overflow may occur");
             } else {
+                Logger.i(TAG, "write()  allocate 4 ");
                 bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt((int) value).array();
             }
         } else {
+            Logger.i(TAG, "write()  allocate 8 ");
             bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(value).array();
         }
+        Logger.i(TAG, "write()  will native put ");
         EpicNative.put(bytes, address);
     }
 
@@ -223,11 +234,9 @@ class Offset {
                     throw new RuntimeException("API LEVEL: " + apiLevel + " is not supported now : (");
             }
         }
-        if (Debug.DEBUG) {
-            Logger.i(TAG, "quick code offset: " + ART_QUICK_CODE_OFFSET.getOffset());
-            Logger.i(TAG, "access flag offset: " + ART_ACCESS_FLAG_OFFSET.getOffset());
-            Logger.i(TAG, "jni code offset: " + ART_JNI_ENTRY_OFFSET.getOffset());
+        Logger.i(TAG, "quick code offset: " + ART_QUICK_CODE_OFFSET.getOffset());
+        Logger.i(TAG, "access flag offset: " + ART_ACCESS_FLAG_OFFSET.getOffset());
+        Logger.i(TAG, "jni code offset: " + ART_JNI_ENTRY_OFFSET.getOffset());
 
-        }
     }
 }

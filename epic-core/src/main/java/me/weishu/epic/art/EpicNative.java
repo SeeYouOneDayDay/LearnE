@@ -31,9 +31,11 @@ public final class EpicNative {
 
     private static final String TAG = "JEpicNative";
     private static volatile boolean useUnsafe = false;
-    public static boolean isUseUnsafe (){
+
+    public static boolean isUseUnsafe() {
         return useUnsafe;
     }
+
     static {
         try {
             System.loadLibrary("epic");
@@ -71,10 +73,10 @@ public final class EpicNative {
 
     public static Object getObject(long self, long address) {
         if (useUnsafe) {
-            Logger.d(TAG,"使用Unsafe方式获取对象");
+            Logger.d(TAG, "使用Unsafe方式获取对象");
             return Unsafe.getObject(address);
         } else {
-            Logger.d(TAG,"使用native方式获取对象");
+            Logger.d(TAG, "使用native方式获取对象");
             return getObjectNative(self, address);
         }
     }
@@ -160,17 +162,15 @@ public final class EpicNative {
     }
 
     public static void put(byte[] bytes, long dest) {
-        if (Debug.DEBUG) {
-            Logger.d(TAG, "Writing memory to: " + addrHex(dest));
-            Logger.d(TAG, Debug.hexdump(bytes, dest));
-        }
+        Logger.d(TAG, "put() Writing memory to: " + addrHex(dest));
+        Logger.d(TAG, "put()  bytes: :" + Debug.hexdump(bytes, dest));
         memput(bytes, dest);
     }
 
     public static byte[] get(long src, int length) {
-        Logger.d(TAG, "Reading " + length + " bytes from: " + addrHex(src));
+        Logger.d(TAG, "get函数  Reading(length): " + length + " bytes from: " + src + "--->" + addrHex(src));
         byte[] bytes = memget(src, length);
-        Logger.d(TAG, Debug.hexdump(bytes, src));
+        Logger.d(TAG, "get函数 memget 结果:" + Debug.hexdump(bytes, src));
         return bytes;
     }
 

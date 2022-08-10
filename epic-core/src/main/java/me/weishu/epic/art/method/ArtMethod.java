@@ -30,7 +30,6 @@ import java.util.Arrays;
 
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
-import utils.Debug;
 import utils.Logger;
 import utils.NeverCalled;
 
@@ -259,10 +258,8 @@ public class ArtMethod {
                 byte[] currentAddress = EpicNative.get(origin.address, 4);
                 byte[] backupAddress = EpicNative.get(address, 4);
                 if (!Arrays.equals(currentAddress, backupAddress)) {
-                    if (Debug.DEBUG) {
-                        Logger.i(TAG, "the address of java method was moved by gc, backup it now! origin address: 0x"
-                                + Arrays.toString(currentAddress) + " , currentAddress: 0x" + Arrays.toString(backupAddress));
-                    }
+                    Logger.i(TAG, "the address of java method was moved by gc, backup it now! origin address: 0x"
+                            + Arrays.toString(currentAddress) + " , currentAddress: 0x" + Arrays.toString(backupAddress));
                     EpicNative.put(currentAddress, address);
                     return invokeInternal(receiver, args);
                 } else {
@@ -401,6 +398,7 @@ public class ArtMethod {
      * @return the entry point.
      */
     public long getEntryPointFromQuickCompiledCode() {
+        Logger.i(TAG, "===========获取入口点的偏移量getEntryPointFromQuickCompiledCode============");
         return Offset.read(address, Offset.ART_QUICK_CODE_OFFSET);
     }
 
@@ -408,6 +406,7 @@ public class ArtMethod {
      * @param pointer_entry_point_from_quick_compiled_code the entry point.
      */
     public void setEntryPointFromQuickCompiledCode(long pointer_entry_point_from_quick_compiled_code) {
+        Logger.i(TAG, "===========设置入口点的偏移量setEntryPointFromQuickCompiledCode【" + pointer_entry_point_from_quick_compiled_code + "】============");
         Offset.write(address, Offset.ART_QUICK_CODE_OFFSET, pointer_entry_point_from_quick_compiled_code);
     }
 
@@ -415,18 +414,24 @@ public class ArtMethod {
      * @return the access flags of the method/constructor, not only stand for the modifiers.
      */
     public int getAccessFlags() {
+        Logger.i(TAG, "===========获取访问标志的偏移量getAccessFlags============");
         return (int) Offset.read(address, Offset.ART_ACCESS_FLAG_OFFSET);
     }
 
     public void setAccessFlags(int newFlags) {
+        Logger.i(TAG, "===========设置访问标志的偏移量setAccessFlags【" + newFlags + "】============");
+
         Offset.write(address, Offset.ART_ACCESS_FLAG_OFFSET, newFlags);
     }
 
     public void setEntryPointFromJni(long entryPointFromJni) {
+        Logger.i(TAG, "===========设置Jni 入口点的偏移量setEntryPointFromJni【" + entryPointFromJni + "】============");
         Offset.write(address, Offset.ART_JNI_ENTRY_OFFSET, entryPointFromJni);
     }
 
     public long getEntryPointFromJni() {
+        Logger.i(TAG, "===========读取Jni 入口点的偏移量getEntryPointFromJni============");
+
         return Offset.read(address, Offset.ART_JNI_ENTRY_OFFSET);
     }
 
