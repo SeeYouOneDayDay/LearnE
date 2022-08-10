@@ -647,7 +647,7 @@ public class UnsafeHelper {
         return array[0];
     }
 
-    private static boolean is64Bit() {
+    public static boolean is64Bit() {
         try {
           return  (boolean) Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("is64Bit").invoke(Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("getRuntime").invoke(null));
         } catch (Throwable e) {
