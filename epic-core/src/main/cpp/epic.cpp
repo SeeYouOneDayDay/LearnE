@@ -102,6 +102,11 @@ void init_entries(JNIEnv *env) {
     api_level = atoi(api_level_str);
     LOGV("api level: %d", api_level);
     ArtHelper::init(env, api_level);
+    // 操作方式:
+    // 1. 加载libart.so库 （N之后是二进制方式加载）
+    // 2. 获取 addWeakGloablReference地址
+    // 3. 7.1以上版本 加载libart-compiler.so库,额外获取jit_compile_method、jit_load、suspendAll、resumeAll等 ，根据版本不同，调整JIT编译相关的函数获取(纯属个人理解)
+    //
     if (api_level < 23) {
         // Android L, art::JavaVMExt::AddWeakGlobalReference(art::Thread*, art::mirror::Object*)
         void *handle = dlopen("libart.so", RTLD_LAZY | RTLD_GLOBAL);
@@ -337,6 +342,9 @@ jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
 }
 
 jlong epic_getMethodAddress(JNIEnv *env, jclass clazz, jobject method) {
+    //转化获取方法ID,就是ArtMethod指针
+    //将java.lang.reflect.Method或者java.lang.reflect.Constructor对象转换为方法ID
+    //jmethodID FromReflectedMethod(JNIEnv *env,jobject method);
     jlong art_method = (jlong) env->FromReflectedMethod(method);
     if (art_method % 2 == 1) {
         art_method = reinterpret_cast<jlong>(JniIdManager_DecodeMethodId_(

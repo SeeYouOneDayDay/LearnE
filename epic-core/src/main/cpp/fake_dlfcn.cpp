@@ -70,6 +70,7 @@ static int fake_dlclose(void *handle) {
     }
     return 0;
 }
+#define fatal(fmt, args...) do { LOGE(fmt,##args); goto err_exit; } while(0)
 
 /* flags are ignored */
 static void *fake_dlopen_with_path(const char *libpath, int flags) {
@@ -80,9 +81,6 @@ static void *fake_dlopen_with_path(const char *libpath, int flags) {
     int k, fd = -1, found = 0;
     char *shoff;
     Elf_Ehdr *elf = (Elf_Ehdr *) MAP_FAILED;
-
-#define fatal(fmt, args...) do { LOGE(fmt,##args); goto err_exit; } while(0)
-
     maps = fopen("/proc/self/maps", "r");
     if (!maps) fatal("failed to open maps");
 
@@ -258,6 +256,7 @@ static const char *fake_dlerror() {
 
 // =============== implementation for compat ==========
 static int SDK_INT = -1;
+// 通过 systemproperty获取sdk版本
 static int get_sdk_level() {
     if (SDK_INT > 0) {
         return SDK_INT;

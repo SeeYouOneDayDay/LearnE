@@ -1,7 +1,6 @@
 package android.app;
 
 
-import static uts.Ref.getObjectField;
 
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -15,9 +14,9 @@ import android.view.Display;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
-import uts.Ref;
 import uts.Subclass;
 import uts.XL;
+import uts.Ref;
 
 /**
  * Contains various methods for information about the current app.
@@ -47,13 +46,13 @@ public final class AndroidAppHelper {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Map<Object, WeakReference> getResourcesMap(ActivityThread activityThread) {
         if (Build.VERSION.SDK_INT >= 24) {
-            Object resourcesManager = getObjectField(activityThread, "mResourcesManager");
-            return (Map) getObjectField(resourcesManager, "mResourceImpls");
+            Object resourcesManager = Ref.getObjectField(activityThread, "mResourcesManager");
+            return (Map) Ref.getObjectField(resourcesManager, "mResourceImpls");
         } else if (Build.VERSION.SDK_INT >= 19) {
-            Object resourcesManager = getObjectField(activityThread, "mResourcesManager");
-            return (Map) getObjectField(resourcesManager, "mActiveResources");
+            Object resourcesManager = Ref.getObjectField(activityThread, "mResourcesManager");
+            return (Map) Ref.getObjectField(resourcesManager, "mActiveResources");
         } else {
-            return (Map) getObjectField(activityThread, "mActiveResources");
+            return (Map) Ref.getObjectField(activityThread, "mActiveResources");
         }
     }
 
@@ -139,7 +138,7 @@ public final class AndroidAppHelper {
 
         if (resourcesKey != null) {
             if (Build.VERSION.SDK_INT >= 24) {
-                Object resImpl = getObjectField(resources, "mResourcesImpl");
+                Object resImpl = Ref.getObjectField(resources, "mResourcesImpl");
                 getResourcesMap(thread).put(resourcesKey, new WeakReference<>(resImpl));
             } else {
                 getResourcesMap(thread).put(resourcesKey, new WeakReference<>(resources));
@@ -169,11 +168,11 @@ public final class AndroidAppHelper {
         if (am == null)
             return null;
 
-        Object boundApplication = getObjectField(am, "mBoundApplication");
+        Object boundApplication = Ref.getObjectField(am, "mBoundApplication");
         if (boundApplication == null)
             return null;
 
-        return (ApplicationInfo) getObjectField(boundApplication, "appInfo");
+        return (ApplicationInfo) Ref.getObjectField(boundApplication, "appInfo");
     }
 
     /**

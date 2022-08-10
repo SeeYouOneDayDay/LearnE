@@ -19,10 +19,6 @@ package me.weishu.epic.art.method;
 import android.os.Build;
 import android.util.Log;
 
-import utils.Debug;
-import utils.Logger;
-import utils.NeverCalled;
-
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -34,6 +30,9 @@ import java.util.Arrays;
 
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
+import utils.Debug;
+import utils.Logger;
+import utils.NeverCalled;
 
 /**
  * Object stands for a Java Method, may be a constructor or a method.
@@ -113,6 +112,7 @@ public class ArtMethod {
 
     public ArtMethod backup() {
         try {
+            // 考虑版本兼容，黑白名单越界貌似可以用，哈哈哈
             // Before Oreo, it is: java.lang.reflect.AbstractMethod
             // After Oreo, it is: java.lang.reflect.Executable
             Class<?> abstractMethodClass = Method.class.getSuperclass();
@@ -142,7 +142,7 @@ public class ArtMethod {
                 Method newMethod = Method.class.getConstructor(artMethodClass).newInstance(destArtMethod);
                 newMethod.setAccessible(true);
                 artMethod = ArtMethod.of(newMethod);
-
+                // 交换地址
                 artMethod.setEntryPointFromQuickCompiledCode(getEntryPointFromQuickCompiledCode());
                 artMethod.setEntryPointFromJni(getEntryPointFromJni());
             } else {
@@ -165,6 +165,7 @@ public class ArtMethod {
                 int artMethodSize = getArtMethodSize();
                 long memoryAddress = EpicNative.map(artMethodSize);
 
+                // 交换地址
                 byte[] data = EpicNative.get(address, artMethodSize);
                 EpicNative.put(data, memoryAddress);
                 artMethodField.set(m, memoryAddress);
@@ -179,7 +180,6 @@ public class ArtMethod {
             artMethod.setAccessible(true);
             artMethod.origin = this; // save origin method.
             return artMethod;
-
 
         } catch (Throwable e) {
             Log.e(TAG, "backup method error:", e);
@@ -455,6 +455,7 @@ public class ArtMethod {
     private void rule2() {
         Log.i(TAG, "do not inline me!!");
     }
+
     public static long getQuickToInterpreterBridge() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             return -1L;

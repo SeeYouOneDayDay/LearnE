@@ -1,5 +1,7 @@
 package me.weishu.exposed;
 
+import static de.robv.android.xposed.XposedBridge.log;
+
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
@@ -52,8 +54,6 @@ import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
-
-import static de.robv.android.xposed.XposedBridge.log;
 
 
 public class ExposedBridge {
@@ -333,9 +333,10 @@ public class ExposedBridge {
         if (ignoreHooks(method)) {
             return null;
         }
-
+        // 预设方法，内部实现预先加载部分资源等操作，兼容特殊app
         presetMethod(method);
 
+        // 单独处理application的方法 onCreate/attach
         XC_MethodHook.Unhook replaceUnhook = CHAHelper.replaceForCHA(method, callback);
         if (replaceUnhook != null) {
             return ExposedHelper.newUnHook(callback, replaceUnhook.getHookedMethod());

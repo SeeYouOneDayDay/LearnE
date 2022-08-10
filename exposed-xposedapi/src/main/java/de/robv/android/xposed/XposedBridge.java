@@ -188,7 +188,9 @@ public final class XposedBridge {
      * @see #hookAllConstructors
      */
     public static XC_MethodHook.Unhook hookMethod(Member hookMethod, XC_MethodHook callback) {
-        Class<?> exposedBridge = XposedHelpers.findClass("me.weishu.exposed.ExposedBridge", XposedBridge.class.getClassLoader());
+        //等于直接调用了 me.weishu.exposed.ExposedBridge.hookMethod
+        Class<?> exposedBridge = XposedHelpers.findClass("me.weishu.exposed.ExposedBridge", XposedBridge.BOOTCLASSLOADER);
+//        Class<?> exposedBridge = XposedHelpers.findClass("me.weishu.exposed.ExposedBridge", XposedBridge.class.getClassLoader());
         return (XC_MethodHook.Unhook) XposedHelpers.callStaticMethod(exposedBridge, "hookMethod", hookMethod, callback);
     }
 
