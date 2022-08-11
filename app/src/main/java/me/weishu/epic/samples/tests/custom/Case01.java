@@ -1,16 +1,5 @@
 package me.weishu.epic.samples.tests.custom;
 
-import android.os.Build;
-import android.util.Log;
-
-import java.lang.reflect.Method;
-
-import me.weishu.epic.art.method.ArtMethod;
-import utils.Logger;
-import utils.tt.ArtHelper;
-import utils.tt.Refunsafe;
-import utils.tt.UnsafeHelper;
-
 /**
  * @Copyright © 2022 sanbo Inc. All rights reserved.
  * @Description: TODO
@@ -49,23 +38,23 @@ public class Case01 implements Case {
 //        Logger.d(TAG, "地址offset:" + (am2.getAddress() - am.getAddress())
 //                + "----sizeOfArtMethod：" + ArtHelper.sizeOfArtMethod());
 //        Logger.i("==============地址对比完毕=========================");
-        try {
-            Method m1 = ArtHelper.NeverUse.class.getMethod("method1");
-            ArtMethod arm = ArtMethod.of(m1);
-            Logger.i("============特殊测试集合==================="
-                    + "\r\n\tapi:" + Build.VERSION.SDK_INT
-                    + "\r\n\tart:" + UnsafeHelper.isArt()
-                    + "\r\n\t64Bit:" + UnsafeHelper.is64Bit()
-                    + "\r\n\tsizeOfArtMethod:" + ArtHelper.sizeOfArtMethod()
-                    + "\r\n\tadd:" + ArtHelper.getMethodAddress(m1)
-                    + "\r\n\tArtMethodSize:" + arm.getArtMethodSize()
-                    + "\r\n\tAddress:" + arm.getAddress()
-                    + "\r\n\tFieldOffset:" + arm.getFieldOffset()
-                    + "\r\n\tEntryPointFromQuickCompiledCode:" + arm.getEntryPointFromQuickCompiledCode()
-            );
-        } catch (Throwable e) {
-            Logger.e(TAG, Log.getStackTraceString(e));
-        }
+//        try {
+//            Method m1 = ArtHelper.NeverUse.class.getMethod("method1");
+//            ArtMethod arm = ArtMethod.of(m1);
+//            Logger.i("============特殊测试集合==================="
+//                    + "\r\n\tapi:" + Build.VERSION.SDK_INT
+//                    + "\r\n\tart:" + UnsafeHelper.isArt()
+//                    + "\r\n\t64Bit:" + UnsafeHelper.is64Bit()
+//                    + "\r\n\tsizeOfArtMethod:" + ArtHelper.sizeOfArtMethod()
+//                    + "\r\n\tadd:" + ArtHelper.getMethodAddress(m1)
+//                    + "\r\n\tArtMethodSize:" + arm.getArtMethodSize()
+//                    + "\r\n\tAddress:" + arm.getAddress()
+//                    + "\r\n\tFieldOffset:" + arm.getFieldOffset()
+//                    + "\r\n\tEntryPointFromQuickCompiledCode:" + arm.getEntryPointFromQuickCompiledCode()
+//            );
+//        } catch (Throwable e) {
+//            Logger.e(TAG, Log.getStackTraceString(e));
+//        }
 
 //        // 测试一个逻辑 来自JAndFix https://github.com/SeeYouOneDayDay/JAndFix.git
 //
