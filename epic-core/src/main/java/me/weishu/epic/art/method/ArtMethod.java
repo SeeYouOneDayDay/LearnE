@@ -44,27 +44,34 @@ public class ArtMethod {
      * The address of the Art method. this is not the real memory address of the java.lang.reflect.Method
      * But the address used by VM which stand for the Java method.
      * generally, it was the address of art::mirror::ArtMethod. @{link #objectAddress}
+     *
+     * Art 方法的地址。 这不是 java.lang.reflect.Method 的真实内存地址，而是代表 Java 方法的 VM 使用的地址。
+     * 通常，它是 art::mirror::ArtMethod 的地址。 @{链接#objectAddress}
      */
     private long address;
 
     /**
      * the origin object if this is a constructor
+     * 如果这是构造函数，则为原始对象
      */
     private Constructor constructor;
 
     /**
      * the origin object if this is a method;
+     * 如果这是一个方法，则为源对象；
      */
     private Method method;
 
     /**
      * the origin ArtMethod if this method is a backup of someone, null when this is not backup
+     * 如果此方法是某人的备份，则为原始 ArtMethod，如果不是备份，则为 null
      */
     private ArtMethod origin;
 
     /**
      * The size of ArtMethod, usually the java part of ArtMethod may not stand for the whole one
      * may be some native field is placed in the end of header.
+     * ArtMethod 的大小，通常 ArtMethod 的 java 部分可能不代表整个，可能是一些 native 字段放在 header 的末尾。
      */
     private static int artMethodSize = -1;
 
@@ -82,8 +89,10 @@ public class ArtMethod {
         }
         this.method = method;
         if (address != -1) {
+            Logger.d(TAG,"ArtMethod the address is "+address);
             this.address = address;
         } else {
+            Logger.d(TAG,"ArtMethod the address will get native");
             init();
         }
     }
@@ -91,8 +100,10 @@ public class ArtMethod {
     private void init() {
         if (constructor != null) {
             address = EpicNative.getMethodAddress(constructor);
+            Logger.d(TAG,"init() constructor :"+constructor +" ; address: "+address);
         } else {
             address = EpicNative.getMethodAddress(method);
+            Logger.d(TAG,"init() address: "+address);
         }
     }
 
@@ -147,7 +158,14 @@ public class ArtMethod {
             } else {
                 Constructor<Method> constructor = Method.class.getDeclaredConstructor();
                 // we can't use constructor.setAccessible(true); because Google does not like it
+                //我们不能使用 constructor.setAccessible(true); 因为谷歌会限制它
                 // AccessibleObject.setAccessible(new AccessibleObject[]{constructor}, true);
+
+                // Indicates whether language-level access checks are overridden by this object. Initializes to "false". This field is used by Field, Method, and Constructor.
+                //  NOTE: for security purposes, this field must not be visible outside this package.
+                //指示此对象是否覆盖语言级别的访问检查。 初始化为“假”。 此字段由字段、方法和构造函数使用。
+                //注意：出于安全目的，此字段在此包外不得可见。
+                // boolean override;
                 Field override = AccessibleObject.class.getDeclaredField(
                         Build.VERSION.SDK_INT == Build.VERSION_CODES.M ? "flag" : "override");
                 override.setAccessible(true);

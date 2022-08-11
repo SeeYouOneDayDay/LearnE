@@ -1,12 +1,15 @@
 package me.weishu.epic.samples.tests.custom;
 
+import android.os.Build;
+import android.util.Log;
+
 import java.lang.reflect.Method;
 
 import me.weishu.epic.art.method.ArtMethod;
-import me.weishu.epic.samples.tests.fsx.ArtHelper;
-import me.weishu.epic.samples.tests.fsx.MemoryHelper;
 import utils.Logger;
-import utils.UnsafeHelper;
+import utils.tt.ArtHelper;
+import utils.tt.Refunsafe;
+import utils.tt.UnsafeHelper;
 
 /**
  * @Copyright © 2022 sanbo Inc. All rights reserved.
@@ -45,38 +48,57 @@ public class Case01 implements Case {
 //
 //        Logger.d(TAG, "地址offset:" + (am2.getAddress() - am.getAddress())
 //                + "----sizeOfArtMethod：" + ArtHelper.sizeOfArtMethod());
-        Logger.i("==============地址对比完毕=========================");
-        // 测试一个逻辑 来自JAndFix https://github.com/SeeYouOneDayDay/JAndFix.git
-
-        Method method1=ArtHelper.getM1();
-        // 取m1序列
-        int method1MethodIndex = 0;
-        Method[] methods = ArtHelper.NeverUse.class.getDeclaredMethods();
-        for (int i = 0, size = methods.length; i < size; i++) {
-            if (methods[i].equals(method1)) {
-                //why +1? Becase "FindVirtualMethodForVirtualOrInterface(method, sizeof(void*))" has the offset of sizeof(void*)
-                method1MethodIndex = i + 1;
-                break;
-            }
+//        Logger.i("==============地址对比完毕=========================");
+        try {
+            Method m1 = ArtHelper.NeverUse.class.getMethod("method1");
+            ArtMethod arm = ArtMethod.of(m1);
+            Logger.i("============特殊测试集合==================="
+                    + "\r\n\tapi:" + Build.VERSION.SDK_INT
+                    + "\r\n\tart:" + UnsafeHelper.isArt()
+                    + "\r\n\t64Bit:" + UnsafeHelper.is64Bit()
+                    + "\r\n\tsizeOfArtMethod:" + ArtHelper.sizeOfArtMethod()
+                    + "\r\n\tadd:" + ArtHelper.getMethodAddress(m1)
+                    + "\r\n\tArtMethodSize:" + arm.getArtMethodSize()
+                    + "\r\n\tAddress:" + arm.getAddress()
+                    + "\r\n\tFieldOffset:" + arm.getFieldOffset()
+                    + "\r\n\tEntryPointFromQuickCompiledCode:" + arm.getEntryPointFromQuickCompiledCode()
+            );
+        } catch (Throwable e) {
+            Logger.e(TAG, Log.getStackTraceString(e));
         }
-        Logger.i(TAG,"method1MethodIndex: "+method1MethodIndex);
-        int methodIndexOffset=0;
-        int len= (int) (ArtHelper.sizeOfArtMethod() / 4);
-        for (int i = 1; i < len; i++) {
-            int value1 = UnsafeHelper.getInt(null, MemoryHelper.getMethodAddress(ArtHelper.getM1()) + i * 4);
-            int value2 = UnsafeHelper.getInt(null, MemoryHelper.getMethodAddress(ArtHelper.getM2()) + i * 4);
-            Logger.d(TAG,"【"+i+"】 value1: "+value1+"---"+method1MethodIndex+"   , value2: "+value2+"---"+(method1MethodIndex + 1));
-//            Logger.d(TAG,"Plan B value1: "+UnsafeHelper.getInt(MemoryHelper.getMethodAddress(ArtHelper.getM1()) + i * 4)
-//                    +" , value2: "+UnsafeHelper.getInt(MemoryHelper.getMethodAddress(ArtHelper.getM2()) + i * 4)
-//            );
-            if (value1 == method1MethodIndex
-                    && value2 == method1MethodIndex + 1) {
-                Logger.i(TAG,"["+i+"]一样了！！！value1:"+value1 +" ; value2: "+ value2);
-                methodIndexOffset = i * 4;
-            }
-        }
-        Logger.i(TAG,"methodIndexOffset:"+methodIndexOffset);
 
+//        // 测试一个逻辑 来自JAndFix https://github.com/SeeYouOneDayDay/JAndFix.git
+//
+//        Method method1 = Refunsafe.getMethod(ArtHelper.NeverUse.class, "method1");
+//        // 取m1序列
+//        int method1MethodIndex = 0;
+//        Method[] methods = ArtHelper.NeverUse.class.getDeclaredMethods();
+//        for (int i = 0, size = methods.length; i < size; i++) {
+//            if (methods[i].equals(method1)) {
+//                //why +1? Becase "FindVirtualMethodForVirtualOrInterface(method, sizeof(void*))" has the offset of sizeof(void*)
+//                method1MethodIndex = i + 1;
+//                break;
+//            }
+//        }
+//        Logger.i(TAG, "method1MethodIndex: " + method1MethodIndex);
+//        int methodIndexOffset = 0;
+//        int len = (int) (ArtHelper.sizeOfArtMethod() / 4);
+//        for (int i = 1; i < len; i++) {
+//            Method m1= Refunsafe.getMethod(ArtHelper.NeverUse.class,"method1");
+//            Method m2= Refunsafe.getMethod(ArtHelper.NeverUse.class,"method2");
+//            int value1 = UnsafeHelper.getInt(null, ArtHelper.getMethodAddress(m1) + i * 4);
+//            int value2 = UnsafeHelper.getInt(null, ArtHelper.getMethodAddress(m2) + i * 4);
+//            Logger.d(TAG, "【" + i + "】 value1: " + value1 + "---" + method1MethodIndex + "   , value2: " + value2 + "---" + (method1MethodIndex + 1));
+////            Logger.d(TAG,"Plan B value1: "+UnsafeHelper.getInt(MemoryHelper.getMethodAddress(ArtHelper.getM1()) + i * 4)
+////                    +" , value2: "+UnsafeHelper.getInt(MemoryHelper.getMethodAddress(ArtHelper.getM2()) + i * 4)
+////            );
+//            if (value1 == method1MethodIndex
+//                    && value2 == method1MethodIndex + 1) {
+//                Logger.i(TAG, "[" + i + "]一样了！！！value1:" + value1 + " ; value2: " + value2);
+//                methodIndexOffset = i * 4;
+//            }
+//        }
+//        Logger.i(TAG, "methodIndexOffset:" + methodIndexOffset);
 
     }
 

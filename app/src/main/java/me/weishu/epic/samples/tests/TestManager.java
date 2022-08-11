@@ -35,6 +35,7 @@ import me.weishu.epic.samples.tests.arguments.ArgStatic888;
 import me.weishu.epic.samples.tests.arguments.ArgStatic8884;
 import me.weishu.epic.samples.tests.arguments.ArgStatic8888;
 import me.weishu.epic.samples.tests.custom.Case01;
+import me.weishu.epic.samples.tests.custom.Case02;
 import me.weishu.epic.samples.tests.custom.Case1;
 import me.weishu.epic.samples.tests.custom.Case10_Default_Constructor;
 import me.weishu.epic.samples.tests.custom.Case11_SuspendAll;
@@ -155,6 +156,7 @@ public class TestManager {
 
         TestSuite custom = new TestSuite("自定义");
         CaseManager.getInstance().getCase(Case01.class);
+        CaseManager.getInstance().getCase(Case02.class);
         CaseManager.getInstance().getCase(Case1.class);
         CaseManager.getInstance().getCase(Case2.class);
         CaseManager.getInstance().getCase(Case3.class);

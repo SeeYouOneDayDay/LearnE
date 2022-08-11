@@ -28,24 +28,24 @@ import utils.Runtime;
 /**
  * The Offset of field in an ArtMethod
  */
-class Offset {
+public class Offset {
 
     private static final String TAG = "Offset";
 
     /**
      * the offset of the entry point. 入口点的偏移量
      */
-    static Offset ART_QUICK_CODE_OFFSET;
+   public static Offset ART_QUICK_CODE_OFFSET;
 
     /**
      * the offset of the access flag. 访问标志的偏移量
      */
-    static Offset ART_ACCESS_FLAG_OFFSET;
+    public static Offset ART_ACCESS_FLAG_OFFSET;
 
     /**
      * the offset of a jni entry point. jni 入口点的偏移量
      */
-    static Offset ART_JNI_ENTRY_OFFSET;
+    public static Offset ART_JNI_ENTRY_OFFSET;
 
     static {
         initFields();
