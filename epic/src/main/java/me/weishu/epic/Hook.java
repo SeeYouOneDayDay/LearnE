@@ -36,7 +36,7 @@ public class Hook {
                 MethodInspect.getArtMethodSize());
     }
 
-    public static Object callOrigin(Object receiver, Object...params) {
+    public static Object callOrigin(Object receiver, Object... params) {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         StackTraceElement currentStack = stackTrace[3];
         Method method = sBackups.get(Pair.create(currentStack.getClassName(), currentStack.getMethodName()));
@@ -151,6 +151,7 @@ public class Hook {
             throw new UnsupportedException("can not backup method.", e);
         }
     }
+
     private static class Reflection {
         public static Object call(Class<?> clazz, String className, String methodName, Object receiver,
                                   Class[] types, Object[] params) throws UnsupportedException {

@@ -15,7 +15,6 @@ import java.lang.reflect.Method;
 /**
  * Created by weishu on 17/3/15.
  */
-
 public class MainActivity extends Activity {
 
     WebView mWebView;

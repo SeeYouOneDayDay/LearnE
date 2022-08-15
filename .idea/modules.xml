@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/epic.iml" filepath="$PROJECT_DIR$/epic.iml" />
-      <module fileurl="file://$PROJECT_DIR$/epic/epic-epic.iml" filepath="$PROJECT_DIR$/epic/epic-epic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/epic.iml" filepath="$PROJECT_DIR$/.idea/modules/epic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/epic.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/epic.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/epic.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/epic.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/epic.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/epic.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/epic.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/epic.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/epic/epic.epic.iml" filepath="$PROJECT_DIR$/.idea/modules/epic/epic.epic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/epic/epic.epic.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/epic/epic.epic.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/epic/epic.epic.main.iml" filepath="$PROJECT_DIR$/.idea/modules/epic/epic.epic.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/epic/epic.epic.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/epic/epic.epic.unitTest.iml" />
     </modules>
   </component>
 </project>
