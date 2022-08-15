@@ -28,6 +28,7 @@ public class Hook {
     private static Map<Pair<String, String>, Method> sBackups = new ConcurrentHashMap<>();
 
     // 目标是替换函数实现。调用原函数还可以正常调用。xposed的那种的逻辑
+    // 用户可用替换参数的效果。
     public static void hook(Method origin, Method replace) {
         Log.d(TAG, "hook() orign:" + origin.toString() + "\r\n\treplace:" + replace.toString());
         // 1. backup
