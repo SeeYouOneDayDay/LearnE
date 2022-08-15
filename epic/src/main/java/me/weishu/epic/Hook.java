@@ -23,13 +23,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Hook {
 
-    private static final String TAG = "Hook";
+    private static final String TAG = "sanbo.Hook";
 
     private static Map<Pair<String, String>, Method> sBackups = new ConcurrentHashMap<>();
 
+    // 目标是替换函数实现。调用原函数还可以正常调用。xposed的那种的逻辑
     public static void hook(Method origin, Method replace) {
+        Log.d(TAG, "hook() orign:" + origin.toString() + "\r\n\treplace:" + replace.toString());
         // 1. backup
-        Method backUp = backUp(origin, replace);
+        Method backUp = backUp(origin);
         sBackups.put(Pair.create(replace.getDeclaringClass().getName(), replace.getName()), backUp);
         // 2. replace method
         Memory.memcpy(MethodInspect.getMethodAddress(origin), MethodInspect.getMethodAddress(replace),
@@ -37,6 +39,7 @@ public class Hook {
     }
 
     public static Object callOrigin(Object receiver, Object... params) {
+        Log.i(TAG, "callOrigin receiver:" + receiver.toString() + "---->" + Arrays.asList(params));
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         StackTraceElement currentStack = stackTrace[3];
         Method method = sBackups.get(Pair.create(currentStack.getClassName(), currentStack.getMethodName()));
@@ -48,7 +51,7 @@ public class Hook {
         }
     }
 
-    private static Method backUp(Method origin, Method replace) {
+    private static Method backUp(Method origin) {
         try {
             if (Build.VERSION.SDK_INT < 23) {
                 // java.lang.reflect.ArtMethod
