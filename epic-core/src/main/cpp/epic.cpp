@@ -42,6 +42,14 @@
 
 #define JNIHOOK_CLASS "me/weishu/epic/art/EpicNative"
 
+//把 art::mirror::Object 转换为 jobject对象，这样我们可以通过JNI进而转化为Java对象。
+//art::JavaVMExt::AddWeakGlobalReference(art::Thread*, art::mirror::Object*)
+//此函数在 libart.so中，我们可以通过 dlsym拿到函数指针，然后直接调用。
+//      不过这个函数有一个art::Thread 的参数，如何拿到这个参数呢？
+//      查阅 art::Thread 的源码发现，这个 art::Thread 与 java.lang.Thread 也有某种对应关系，
+//      它们是通过peer结合在一起的（JNI文档中有讲）。
+//      也就是说，java.lang.Thread类中的 nativePeer 成员代表的就是当前线程的 art::Thread对象。
+//      这个问题迎刃而解。
 jobject (*addWeakGloablReference)(JavaVM *, void *, void *) = nullptr;
 
 void *(*jit_load_)(bool *) = nullptr;
@@ -60,11 +68,24 @@ typedef bool (*JIT_COMPILE_METHOD4)(void *, void *, void *, void *, int); // And
 
 void (*jit_unload_)(void *) = nullptr;
 
+
+/**
+ * 在Hook的过程中暂停所有其他线程，不让它们有机会修改代码；在Hook完毕之后在恢复执行。
+ *      那么问题来了，如何暂停/恢复所有线程？Google了一番发现有人通过ptrace实现：
+ *      开一个linux task然后挨个ptrace本进程内的所有子线程，这样就是实现了暂停。
+ *      这种方式很重而且不是特别稳定，于是我就放弃了。ART虚拟机内部一定也有暂停线程的需求（比如GC），
+ *      因此我可以选择直接调用ART的内部函数。
+ *
+ * 在源码里面捞了一番之后果然在thread_list.cc 中找到了这样的函数 resumeAll/suspendAll；
+ *      不过遗憾的是这两个函数是ThreadList类的成员函数，要调用他们必须拿到ThreadList的指针；
+ *      一般情况下是没有比较稳定的方式拿到这个对象的。不过好在Android 源码通过RAII机制对 suspendAll/resumeAll做了一个封装，
+ *      名为 ScopedSuspendAll 这类的构造函数里面执行暂停操作，析构函数执行恢复操作，
+ *      在栈上分配变量此类型的变量之后，在这个变量的作用域内可以自动实现暂停和恢复。
+ *      因此我只需要用 dlsym 拿到构造函数和析构函数的符号之后，直接调用就能实现暂停恢复功能
+ */
 class ScopedSuspendAll {
 };
-
 void (*suspendAll)(ScopedSuspendAll *, char *) = nullptr;
-
 void (*resumeAll)(ScopedSuspendAll *) = nullptr;
 
 class ScopedJitSuspend {

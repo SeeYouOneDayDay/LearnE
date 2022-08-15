@@ -18,10 +18,6 @@ package me.weishu.epic.art;
 
 import android.os.Build;
 
-import utils.Debug;
-import utils.Logger;
-import utils.Runtime;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,6 +31,9 @@ import me.weishu.epic.art.arch.Arm64;
 import me.weishu.epic.art.arch.ShellCode;
 import me.weishu.epic.art.arch.Thumb2;
 import me.weishu.epic.art.method.ArtMethod;
+import utils.Debug;
+import utils.Logger;
+import utils.Runtime;
 
 /**
  * Hook Center.
@@ -135,7 +134,7 @@ public final class Epic {
             }
             Trampoline trampoline = scripts.get(key);
             boolean ret = trampoline.install(artOrigin);
-            // uts.Logger.d(TAG, "hook Method result:" + ret);
+            Logger.d(TAG, "hook Method result:" + ret);
             return ret;
         }
     }
@@ -198,6 +197,7 @@ public final class Epic {
     }
 
 
+    // 缓存原方案状态及细节
     public static class MethodInfo {
         public boolean isStatic;
         public int paramNumber;
