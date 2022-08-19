@@ -16,10 +16,6 @@
 
 package me.weishu.epic.art;
 
-import utils.Debug;
-import utils.Logger;
-import utils.Runtime;
-
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +24,9 @@ import me.weishu.epic.art.arch.ShellCode;
 import me.weishu.epic.art.entry.Entry;
 import me.weishu.epic.art.entry.Entry64;
 import me.weishu.epic.art.method.ArtMethod;
+import utils.Debug;
+import utils.Logger;
+import utils.Runtime;
 
 class Trampoline {
     private static final String TAG = "Trampoline";
@@ -48,7 +47,7 @@ class Trampoline {
         this.originalCode = EpicNative.get(jumpToAddress, shellCode.sizeOfDirectJump());
     }
 
-    public boolean install(ArtMethod originMethod){
+    public boolean install(ArtMethod originMethod) {
         Logger.d(TAG, "inside install");
         boolean modified = segments.add(originMethod);
         if (!modified) {
@@ -131,7 +130,8 @@ class Trampoline {
 
     private boolean activate() {
         long pc = getTrampolinePc();
-        Logger.d(TAG, "Writing direct jump entry " + Debug.addrHex(pc) + " to origin entry: 0x" + Debug.addrHex(jumpToAddress));
+//        Logger.d(TAG, "Writing direct jump entry " + Debug.addrHex(pc) + " to origin entry: 0x" + Debug.addrHex(jumpToAddress));
+        Logger.d(TAG, "Writing direct jump entry " + pc + " to origin entry  jumpToAddress: " + jumpToAddress);
         synchronized (Trampoline.class) {
             return EpicNative.activateNative(jumpToAddress, pc, shellCode.sizeOfDirectJump(),
                     shellCode.sizeOfBridgeJump(), shellCode.createDirectJump(pc));
@@ -144,8 +144,8 @@ class Trampoline {
         super.finalize();
     }
 
-    private byte[] createTrampoline(ArtMethod source){
-        Logger.d("inside createTrampoline");
+    private byte[] createTrampoline(ArtMethod source) {
+        Logger.d("inside Trampoline.createTrampoline. addr(source):" + source.getAddress());
         final Epic.MethodInfo methodInfo = Epic.getMethodInfo(source.getAddress());
         final Class<?> returnType = methodInfo.returnType;
 
@@ -153,17 +153,22 @@ class Trampoline {
 //                : Entry.getBridgeMethod(returnType);
         Method bridgeMethod = Runtime.is64Bit() ? Entry64.getBridgeMethod(returnType)
                 : Entry.getBridgeMethod(returnType);
-
+// 获取对应类型。然后将跳转地点绑定
         final ArtMethod target = ArtMethod.of(bridgeMethod);
         long targetAddress = target.getAddress();
         long targetEntry = target.getEntryPointFromQuickCompiledCode();
         long sourceAddress = source.getAddress();
         long structAddress = EpicNative.malloc(4);
+        Logger.d("Trampoline.createTrampoline target address ：" + targetAddress
+                + " ;targetEntry: " + targetEntry
+                + " ;sourceAddress: " + sourceAddress
+                + " ;structAddress: " + structAddress
+        );
 
-        Logger.d(TAG, "targetAddress:"+ Debug.longHex(targetAddress));
-        Logger.d(TAG, "sourceAddress:"+ Debug.longHex(sourceAddress));
-        Logger.d(TAG, "targetEntry:"+ Debug.longHex(targetEntry));
-        Logger.d(TAG, "structAddress:"+ Debug.longHex(structAddress));
+//        Logger.d(TAG, "targetAddress:" + Debug.longHex(targetAddress));
+//        Logger.d(TAG, "sourceAddress:" + Debug.longHex(sourceAddress));
+//        Logger.d(TAG, "targetEntry:" + Debug.longHex(targetEntry));
+//        Logger.d(TAG, "structAddress:" + Debug.longHex(structAddress));
 
         return shellCode.createBridgeJump(targetAddress, targetEntry, sourceAddress, structAddress);
     }

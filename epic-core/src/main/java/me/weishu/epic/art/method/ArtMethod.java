@@ -98,12 +98,16 @@ public class ArtMethod {
     }
 
     private void init() {
+
+
         if (constructor != null) {
+//            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+constructor+"]=====")));
             address = EpicNative.getMethodAddress(constructor);
-            Logger.d(TAG,"init() constructor :"+constructor +" ; address: "+address);
+            Logger.d(TAG,"init() constructor :"+constructor +"--->"+address);
         } else {
+//            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+method+"]=====")));
             address = EpicNative.getMethodAddress(method);
-            Logger.d(TAG,"init() address: "+address);
+            Logger.d(TAG,"init()  method: "+method+"----->"+address);
         }
     }
 
@@ -416,7 +420,7 @@ public class ArtMethod {
      * @return the entry point.
      */
     public long getEntryPointFromQuickCompiledCode() {
-        Logger.i(TAG, "===========获取入口点的偏移量getEntryPointFromQuickCompiledCode============");
+        Logger.i(TAG, "inside getEntryPointFromQuickCompiledCode " );
         return Offset.read(address, Offset.ART_QUICK_CODE_OFFSET);
     }
 
@@ -424,7 +428,7 @@ public class ArtMethod {
      * @param pointer_entry_point_from_quick_compiled_code the entry point.
      */
     public void setEntryPointFromQuickCompiledCode(long pointer_entry_point_from_quick_compiled_code) {
-        Logger.i(TAG, "===========设置入口点的偏移量setEntryPointFromQuickCompiledCode【" + pointer_entry_point_from_quick_compiled_code + "】============");
+        Logger.i(TAG, "inside setEntryPointFromQuickCompiledCode: " + pointer_entry_point_from_quick_compiled_code );
         Offset.write(address, Offset.ART_QUICK_CODE_OFFSET, pointer_entry_point_from_quick_compiled_code);
     }
 
@@ -432,7 +436,7 @@ public class ArtMethod {
      * @return the access flags of the method/constructor, not only stand for the modifiers.
      */
     public int getAccessFlags() {
-        Logger.i(TAG, "===========获取访问标志的偏移量getAccessFlags============");
+        Logger.i(TAG, "inside getAccessFlags " );
         return (int) Offset.read(address, Offset.ART_ACCESS_FLAG_OFFSET);
     }
 

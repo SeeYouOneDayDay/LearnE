@@ -17,6 +17,7 @@
 package me.weishu.epic.art;
 
 import android.os.Build;
+import android.util.Log;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -93,8 +94,9 @@ public final class Epic {
         }
         methodInfo.returnType = artOrigin.getReturnType();
         methodInfo.method = artOrigin;
-        originSigs.put(artOrigin.getAddress(), methodInfo);
 
+        originSigs.put(artOrigin.getAddress(), methodInfo);
+        Logger.d("Epic hookMethod() setto MEMORY addr["+artOrigin.getAddress()+"] originSigs:"+originSigs);
         if (!artOrigin.isAccessible()) {
             artOrigin.setAccessible(true);
         }
@@ -121,6 +123,8 @@ public final class Epic {
         Logger.i(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
 
         ArtMethod backupList = getBackMethod(artOrigin);
+        Logger.e("artOrigin.address:"+artOrigin.getAddress()+"-----backupMethod:"+backupMethod.getAddress());
+        Logger.e("backupMethodsMapping:"+backupMethodsMapping.toString());
         if (backupList == null) {
             setBackMethod(artOrigin, backupMethod);
         }
@@ -132,9 +136,10 @@ public final class Epic {
             if (!scripts.containsKey(key)) {
                 scripts.put(key, new Trampoline(ShellCode, originEntry));
             }
+            Logger.i("key:"+key +"-----scripts:"+scripts);
             Trampoline trampoline = scripts.get(key);
             boolean ret = trampoline.install(artOrigin);
-            Logger.d(TAG, "hook Method result:" + ret);
+            Logger.i(TAG, "hook Method result:" + ret);
             return ret;
         }
     }

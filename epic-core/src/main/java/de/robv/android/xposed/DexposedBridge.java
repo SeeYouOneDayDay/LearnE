@@ -102,12 +102,14 @@ public final class DexposedBridge {
         callbacks.add(callback);
         if (newMethod) {
             if (Runtime.isArt()) {
+                Logger.d("It's art!--->" + Build.VERSION.SDK_INT);
                 if (hookMethod instanceof Method) {
                     Epic.hookMethod(((Method) hookMethod));
                 } else {
                     Epic.hookMethod(((Constructor) hookMethod));
                 }
             } else {
+                Logger.d("It's not art!--->" + Build.VERSION.SDK_INT);
                 Class<?> declaringClass = hookMethod.getDeclaringClass();
                 int slot = getIntField(hookMethod, "slot");
 
@@ -161,7 +163,7 @@ public final class DexposedBridge {
         Logger.d(TAG, "findAndHookMethod callback:" + callback);
 
         Method m = XposedHelpers.findMethodExact(clazz, methodName, parameterTypesAndCallback);
-        Logger.d(TAG, "findAndHookMethod m:" + m.toString());
+        Logger.d(TAG, "替换之前findAndHookMethod m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
         XC_MethodHook.Unhook unhook = hookMethod(m, callback);
         Logger.d(TAG, "findAndHookMethod unhook:" + unhook);
 
@@ -169,6 +171,9 @@ public final class DexposedBridge {
             allUnhookCallbacks.add(unhook);
         }
         Logger.d(TAG, "out findAndHookMethod");
+        Method m1 = XposedHelpers.findMethodExact(clazz, methodName, parameterTypesAndCallback);
+        Logger.d(TAG, "替换之后findAndHookMethod m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
+
         return unhook;
     }
 
@@ -197,9 +202,11 @@ public final class DexposedBridge {
         synchronized (hookedMethodCallbacks) {
             callbacks = hookedMethodCallbacks.get(artmethod.getExecutable());
         }
+        Logger.d(TAG, "callbacks:" + callbacks);
+
         Object[] callbacksSnapshot = callbacks.getSnapshot();
         final int callbacksLength = callbacksSnapshot.length;
-        //uts.Logger.d(TAG, "callbacksLength:" + callbacksLength +  ", this:" + thisObject + ", args:" + Arrays.toString(args));
+        Logger.d(TAG, "callbacksLength:" + callbacksLength + ", this:" + thisObject + ", args:" + Arrays.toString(args));
         if (callbacksLength == 0) {
             try {
                 ArtMethod method = Epic.getBackMethod(artmethod);
@@ -301,114 +308,114 @@ public final class DexposedBridge {
         throw (T) exception;
     }
 
-    /**
-     * This method is called as a replacement for hooked methods.
-     */
-    private static Object handleHookedMethod(Member method, int originalMethodId, Object additionalInfoObj,
-                                             Object thisObject, Object[] args) throws Throwable {
-        AdditionalHookInfo additionalInfo = (AdditionalHookInfo) additionalInfoObj;
-
-        Object[] callbacksSnapshot = additionalInfo.callbacks.getSnapshot();
-        final int callbacksLength = callbacksSnapshot.length;
-        if (callbacksLength == 0) {
-            try {
-                return invokeOriginalMethodNative(method, originalMethodId, additionalInfo.parameterTypes,
-                        additionalInfo.returnType, thisObject, args);
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            }
-        }
-
-        XC_MethodHook.MethodHookParam param = new XC_MethodHook.MethodHookParam();
-        param.method = method;
-        param.thisObject = thisObject;
-        param.args = args;
-
-        // call "before method" callbacks
-        int beforeIdx = 0;
-        do {
-            try {
-                ((XC_MethodHook) callbacksSnapshot[beforeIdx]).beforeHookedMethod(param);
-            } catch (Throwable t) {
-                Logger.e(t);
-
-                // reset result (ignoring what the unexpectedly exiting callback did)
-                param.setResult(null);
-                param.returnEarly = false;
-                continue;
-            }
-
-            if (param.returnEarly) {
-                // skip remaining "before" callbacks and corresponding "after" callbacks
-                beforeIdx++;
-                break;
-            }
-        } while (++beforeIdx < callbacksLength);
-
-        // call original method if not requested otherwise
-        if (!param.returnEarly) {
-            try {
-                param.setResult(invokeOriginalMethodNative(method, originalMethodId,
-                        additionalInfo.parameterTypes, additionalInfo.returnType, param.thisObject, param.args));
-            } catch (InvocationTargetException e) {
-                param.setThrowable(e.getCause());
-            }
-        }
-
-        // call "after method" callbacks
-        int afterIdx = beforeIdx - 1;
-        do {
-            Object lastResult = param.getResult();
-            Throwable lastThrowable = param.getThrowable();
-
-            try {
-                ((XC_MethodHook) callbacksSnapshot[afterIdx]).afterHookedMethod(param);
-            } catch (Throwable t) {
-                Logger.e(t);
-                ;
-
-                // reset to last result (ignoring what the unexpectedly exiting callback did)
-                if (lastThrowable == null)
-                    param.setResult(lastResult);
-                else
-                    param.setThrowable(lastThrowable);
-            }
-        } while (--afterIdx >= 0);
-
-        // return
-        if (param.hasThrowable())
-            throw param.getThrowable();
-        else
-            return param.getResult();
-    }
-
-
-
-    private native static Object invokeSuperNative(Object obj, Object[] args, Member method, Class<?> declaringClass,
-                                                   Class<?>[] parameterTypes, Class<?> returnType, int slot)
-            throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException;
-
-    public static Object invokeSuper(Object obj, Member method, Object... args) throws NoSuchFieldException {
-
-        try {
-            int slot = 0;
-            if (!Runtime.isArt()) {
-                //get the super method slot
-                Method m = XposedHelpers.findMethodExact(obj.getClass().getSuperclass(), method.getName(), ((Method) method).getParameterTypes());
-                slot = (int) getIntField(m, "slot");
-            }
-
-            return invokeSuperNative(obj, args, method, method.getDeclaringClass(), ((Method) method).getParameterTypes(), ((Method) method).getReturnType(), slot);
-
-        } catch (IllegalAccessException e) {
-            throw new IllegalAccessError(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (InvocationTargetException e) {
-            throw new XposedHelpers.InvocationTargetError(e.getCause());
-        }
-    }
+//    /**
+//     * This method is called as a replacement for hooked methods.
+//     */
+//    private static Object handleHookedMethod(Member method, int originalMethodId, Object additionalInfoObj,
+//                                             Object thisObject, Object[] args) throws Throwable {
+//        AdditionalHookInfo additionalInfo = (AdditionalHookInfo) additionalInfoObj;
+//
+//        Object[] callbacksSnapshot = additionalInfo.callbacks.getSnapshot();
+//        final int callbacksLength = callbacksSnapshot.length;
+//        if (callbacksLength == 0) {
+//            try {
+//                return invokeOriginalMethodNative(method, originalMethodId, additionalInfo.parameterTypes,
+//                        additionalInfo.returnType, thisObject, args);
+//            } catch (InvocationTargetException e) {
+//                throw e.getCause();
+//            }
+//        }
+//
+//        XC_MethodHook.MethodHookParam param = new XC_MethodHook.MethodHookParam();
+//        param.method = method;
+//        param.thisObject = thisObject;
+//        param.args = args;
+//
+//        // call "before method" callbacks
+//        int beforeIdx = 0;
+//        do {
+//            try {
+//                ((XC_MethodHook) callbacksSnapshot[beforeIdx]).beforeHookedMethod(param);
+//            } catch (Throwable t) {
+//                Logger.e(t);
+//
+//                // reset result (ignoring what the unexpectedly exiting callback did)
+//                param.setResult(null);
+//                param.returnEarly = false;
+//                continue;
+//            }
+//
+//            if (param.returnEarly) {
+//                // skip remaining "before" callbacks and corresponding "after" callbacks
+//                beforeIdx++;
+//                break;
+//            }
+//        } while (++beforeIdx < callbacksLength);
+//
+//        // call original method if not requested otherwise
+//        if (!param.returnEarly) {
+//            try {
+//                param.setResult(invokeOriginalMethodNative(method, originalMethodId,
+//                        additionalInfo.parameterTypes, additionalInfo.returnType, param.thisObject, param.args));
+//            } catch (InvocationTargetException e) {
+//                param.setThrowable(e.getCause());
+//            }
+//        }
+//
+//        // call "after method" callbacks
+//        int afterIdx = beforeIdx - 1;
+//        do {
+//            Object lastResult = param.getResult();
+//            Throwable lastThrowable = param.getThrowable();
+//
+//            try {
+//                ((XC_MethodHook) callbacksSnapshot[afterIdx]).afterHookedMethod(param);
+//            } catch (Throwable t) {
+//                Logger.e(t);
+//                ;
+//
+//                // reset to last result (ignoring what the unexpectedly exiting callback did)
+//                if (lastThrowable == null)
+//                    param.setResult(lastResult);
+//                else
+//                    param.setThrowable(lastThrowable);
+//            }
+//        } while (--afterIdx >= 0);
+//
+//        // return
+//        if (param.hasThrowable())
+//            throw param.getThrowable();
+//        else
+//            return param.getResult();
+//    }
+//
+//
+//
+//    private native static Object invokeSuperNative(Object obj, Object[] args, Member method, Class<?> declaringClass,
+//                                                   Class<?>[] parameterTypes, Class<?> returnType, int slot)
+//            throws IllegalAccessException, IllegalArgumentException,
+//            InvocationTargetException;
+//
+//    public static Object invokeSuper(Object obj, Member method, Object... args) throws NoSuchFieldException {
+//
+//        try {
+//            int slot = 0;
+//            if (!Runtime.isArt()) {
+//                //get the super method slot
+//                Method m = XposedHelpers.findMethodExact(obj.getClass().getSuperclass(), method.getName(), ((Method) method).getParameterTypes());
+//                slot = (int) getIntField(m, "slot");
+//            }
+//
+//            return invokeSuperNative(obj, args, method, method.getDeclaringClass(), ((Method) method).getParameterTypes(), ((Method) method).getReturnType(), slot);
+//
+//        } catch (IllegalAccessException e) {
+//            throw new IllegalAccessError(e.getMessage());
+//        } catch (IllegalArgumentException e) {
+//            throw e;
+//        } catch (InvocationTargetException e) {
+//            throw new XposedHelpers.InvocationTargetError(e.getCause());
+//        }
+//    }
 
     /**
      * Intercept every call to the specified method and call a handler function instead.

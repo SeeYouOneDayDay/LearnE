@@ -369,20 +369,21 @@ public final class HiddenApiBypass {
 
     private static boolean exemptAll() {
         return setHiddenApiExemptions(new String[]{
-                "L",
-                "Landroid/",
-                "Landroid/app/",
-                "Landroid/content/",
-                "Landroid/view/",
-                "Lcom/",
-                "Ljava/lang/",
-                "Ljava/",
-                "Ldalvik/",
-                "Llibcore/",
-                "Ldalvik/system/",
-                "Ldalvik/system/DexFile",
-                "Ldalvik/system/VMRuntime",
-                "Lsun/"
+                "L"
+//                ,
+//                "Landroid/",
+//                "Landroid/app/",
+//                "Landroid/content/",
+//                "Landroid/view/",
+//                "Lcom/",
+//                "Ljava/lang/",
+//                "Ljava/",
+//                "Ldalvik/",
+//                "Llibcore/",
+//                "Ldalvik/system/",
+//                "Ldalvik/system/DexFile",
+//                "Ldalvik/system/VMRuntime",
+//                "Lsun/"
 //                ,"Lhuawei/"
         });
 

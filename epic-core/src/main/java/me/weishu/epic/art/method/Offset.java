@@ -85,12 +85,12 @@ public class Offset {
         Logger.i(TAG, "read() 入参打印 base:" + base + " , offset:" + offset.offset + " , address: " + (base + offset.offset) + " ； width: " + offset.length.width);
         long address = base + offset.offset;
         byte[] bytes = EpicNative.get(address, offset.length.width);
-        Logger.i(TAG, "offsetLen: " + offset.length.width + "-----DWORD:" + BitWidth.DWORD.width);
+//        Logger.i(TAG, "offsetLen: " + offset.length.width + "-----DWORD:" + BitWidth.DWORD.width);
         if (offset.length == BitWidth.DWORD) {
-            Logger.i("-------AAAAA------");
+//            Logger.i("-------AAAAA------");
             return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
         } else {
-            Logger.i("-------BBBBB------");
+//            Logger.i("-------BBBBB------");
             return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getLong();
         }
     }

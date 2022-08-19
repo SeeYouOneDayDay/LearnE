@@ -178,14 +178,14 @@ public final class EpicNative {
 
     public static void put(byte[] bytes, long dest) {
         Logger.d(TAG, "put() Writing memory to: " + addrHex(dest));
-        Logger.d(TAG, "put()  bytes: :" + Debug.hexdump(bytes, dest));
+//        Logger.d(TAG, "put()  bytes: :" + Debug.hexdump(bytes, dest));
         memput(bytes, dest);
     }
 
     public static byte[] get(long src, int length) {
-        Logger.d(TAG, "get函数  Reading(length): " + length + " bytes from: " + src + "--->" + addrHex(src));
+//        Logger.d(TAG, "get函数  Reading(length): " + length + " bytes from: " + src + "--->" + addrHex(src));
         byte[] bytes = memget(src, length);
-        Logger.d(TAG, "get函数 memget 结果:" + Debug.hexdump(bytes, src));
+//        Logger.d(TAG, "get函数 memget 结果:" + Debug.hexdump(bytes, src));
         return bytes;
     }
 
