@@ -35,10 +35,10 @@
 
 #define TAG_NAME    "epic.dlfcn"
 
-#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
-#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
-#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
-#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, TAG_NAME, __VA_ARGS__))
+#define LOGV(...)  //((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
+#define LOGD(...)  //((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
+#define LOGI(...)  //((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
+#define LOGE(...)  //((void)__android_log_print(ANDROID_LOG_ERROR, TAG_NAME, __VA_ARGS__))
 
 #ifdef __LP64__
 #define Elf_Ehdr Elf64_Ehdr

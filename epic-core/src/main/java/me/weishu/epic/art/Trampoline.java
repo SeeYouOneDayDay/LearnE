@@ -24,7 +24,6 @@ import me.weishu.epic.art.arch.ShellCode;
 import me.weishu.epic.art.entry.Entry;
 import me.weishu.epic.art.entry.Entry64;
 import me.weishu.epic.art.method.ArtMethod;
-import utils.Debug;
 import utils.Logger;
 import utils.Runtime;
 
@@ -159,10 +158,10 @@ class Trampoline {
         long targetEntry = target.getEntryPointFromQuickCompiledCode();
         long sourceAddress = source.getAddress();
         long structAddress = EpicNative.malloc(4);
-        Logger.d("Trampoline.createTrampoline target address ：" + targetAddress
-                + " ;targetEntry: " + targetEntry
-                + " ;sourceAddress: " + sourceAddress
-                + " ;structAddress: " + structAddress
+        Logger.d("Trampoline.createTrampoline \r\n\ttarget address ：" + targetAddress
+                + "\r\n\ttargetEntry: " + targetEntry
+                + "\r\n\tsourceAddress: " + sourceAddress
+                + "\r\n\tstructAddress: " + structAddress
         );
 
 //        Logger.d(TAG, "targetAddress:" + Debug.longHex(targetAddress));

@@ -167,17 +167,17 @@ public final class EpicNative {
 
     public static long map(int length) {
         long m = mmap(length);
-        Logger.i(TAG, "Mapped memory of size " + length + " at " + addrHex(m));
+//        Logger.i(TAG, "Mapped memory of size " + length + " at " + addrHex(m));
         return m;
     }
 
     public static boolean unmap(long address, int length) {
-        Logger.d(TAG, "Removing mapped memory of size " + length + " at " + addrHex(address));
+//        Logger.d(TAG, "Removing mapped memory of size " + length + " at " + addrHex(address));
         return munmap(address, length);
     }
 
     public static void put(byte[] bytes, long dest) {
-        Logger.d(TAG, "put() Writing memory to: " + addrHex(dest));
+//        Logger.d(TAG, "put() Writing memory to: " + addrHex(dest));
 //        Logger.d(TAG, "put()  bytes: :" + Debug.hexdump(bytes, dest));
         memput(bytes, dest);
     }
@@ -190,12 +190,12 @@ public final class EpicNative {
     }
 
     public static boolean unprotect(long addr, long len) {
-        Logger.d(TAG, "Disabling mprotect from " + addrHex(addr));
+//        Logger.d(TAG, "Disabling mprotect from " + addrHex(addr));
         return munprotect(addr, len);
     }
 
     public static void copy(long src, long dst, int length) {
-        Logger.d(TAG, "Copy " + length + " bytes form " + addrHex(src) + " to " + addrHex(dst));
+//        Logger.d(TAG, "Copy " + length + " bytes form " + addrHex(src) + " to " + addrHex(dst));
         memcpy(src, dst, length);
     }
 

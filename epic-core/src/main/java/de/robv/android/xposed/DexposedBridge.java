@@ -172,7 +172,7 @@ public final class DexposedBridge {
         }
         Logger.d(TAG, "out findAndHookMethod");
         Method m1 = XposedHelpers.findMethodExact(clazz, methodName, parameterTypesAndCallback);
-        Logger.d(TAG, "替换之后findAndHookMethod m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
+        Logger.d(TAG, "替换之后findAndHookMethod m:" + m1.toString() + "----->" + ArtMethod.of(m1).getAddress());
 
         return unhook;
     }
