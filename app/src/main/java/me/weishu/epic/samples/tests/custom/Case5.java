@@ -2,6 +2,7 @@ package me.weishu.epic.samples.tests.custom;
 
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.DexposedBridge;
@@ -20,7 +21,7 @@ import utils.Unsafe;
 public class Case5 implements Case {
     @Override
     public void hook() {
-        Method m =  XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
+        Method m = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
         Logger.d("Case5", "hook 在绑定之前 m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
 
         DexposedBridge.findAndHookMethod(TextView.class, "setPadding", int.class, int.class, int.class, int.class, new XC_MethodHook() {
@@ -53,21 +54,76 @@ public class Case5 implements Case {
             }
         });
 
-        Method m1 =  XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
+        Method m1 = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
         Logger.d("Case5", "hook 在绑定之后 m1:" + m.toString() + "----->" + ArtMethod.of(m1).getAddress());
 
+        Method[] ms = TextView.class.getDeclaredMethods();
+        for (Method _m : ms) {
+            if (_m.getName().contains("setPadding"))
+                Logger.i("Case5", getMethodAddress(_m) + "----->" + _m.toString());
+        }
+    }
+
+    public static long getMethodAddress(Method method) {
+        try {
+            if (method == null) {
+                return 0L;
+            }
+            Object mirrorMethod = getFieldValue(Method.class.getSuperclass(), "artMethod", method);
+            if (mirrorMethod.getClass().equals(Long.class)) {
+                return (Long) mirrorMethod;
+            }
+            return UnsafeHelper.toAddress(mirrorMethod);
+        } catch (Throwable e) {
+
+        }
+        return 0L;
+    }
+
+
+    private static Object getFieldValue(Class superclass, String artMethod, Method method) {
+        Field f = getField(superclass, artMethod);
+        if (f != null) {
+            try {
+                return f.get(method);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    public static Field getField(Class<?> clazz, String fieldName) {
+        try {
+            Field addr = clazz.getDeclaredField(fieldName);
+            if (addr != null) {
+                addr.setAccessible(true);
+                return addr;
+            }
+        } catch (Throwable e) {
+            try {
+                Field addr = clazz.getField(fieldName);
+                if (addr != null) {
+                    addr.setAccessible(true);
+                    return addr;
+                }
+            } catch (Throwable ex) {
+
+            }
+        }
+        return null;
     }
 
     @Override
     public boolean validate(Object... args) {
 //public void setPadding(int left, int top, int right, int bottom) {
-        Method m =  XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
+        Method m = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
         Logger.d("Case5", "执行前 m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
-        TextView tv =new TextView(MainApplication.getAppContext());
-        tv.setPadding(99,99,99,99);
+        TextView tv = new TextView(MainApplication.getAppContext());
+        tv.setPadding(99, 99, 99, 99);
 
 
-        Logger.d("Case5","--->"+tv.getLeft());
+        Logger.d("Case5", "--->" + tv.getLeft());
         return true;
     }
 }
