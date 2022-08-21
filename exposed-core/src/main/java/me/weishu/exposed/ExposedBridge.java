@@ -133,6 +133,7 @@ public class ExposedBridge {
         System.setProperty("vxp_user_dir", new File(applicationInfo.dataDir).getParent());
     }
 
+    // 升级ClassLoader为系统ClassLoader
     private static boolean patchSystemClassLoader() {
         // 1. first create XposedClassLoader -> BootstrapClassLoader
         ClassLoader xposedClassLoader = new XposedClassLoader(ExposedBridge.class.getClassLoader());
@@ -177,6 +178,7 @@ public class ExposedBridge {
         return xposedClassLoader;
     }
 
+    // 加载xposed模块
     public static ModuleLoadResult loadModule(final String moduleApkPath, String moduleOdexDir, String moduleLibPath,
                                               final ApplicationInfo currentApplicationInfo, ClassLoader appClassLoader) {
 

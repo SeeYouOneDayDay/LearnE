@@ -24,8 +24,6 @@ import static de.robv.android.xposed.XposedHelpers.getIntField;
 import android.app.AndroidAppHelper;
 import android.os.Build;
 
-import org.lsposed.hiddenapibypass.HiddenApiBypass;
-
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -40,9 +38,9 @@ import java.util.Set;
 
 import me.weishu.epic.art.Epic;
 import me.weishu.epic.art.method.ArtMethod;
-import me.weishu.reflection.Reflection;
 import utils.Logger;
 import utils.Runtime;
+import uts.MinRefOneClass;
 
 
 public final class DexposedBridge {
@@ -56,8 +54,9 @@ public final class DexposedBridge {
             } else {
                 throw new RuntimeException("unsupported api level: " + Build.VERSION.SDK_INT);
             }
-            Reflection.unseal(AndroidAppHelper.currentApplication());
-            HiddenApiBypass.unseal(AndroidAppHelper.currentApplication());
+            MinRefOneClass.unseal(AndroidAppHelper.currentApplication());
+            // // 可以简化
+//            HiddenApiBypass.unseal(AndroidAppHelper.currentApplication());
         } catch (Throwable e) {
             Logger.e(e);
         }
@@ -155,7 +154,7 @@ public final class DexposedBridge {
 
     public static XC_MethodHook.Unhook findAndHookMethod(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
 
-        Logger.d(TAG, "inside findAndHookMethod");
+        Logger.d(TAG, "inside findAndHookMethod  " + clazz.getName() + "." + methodName);
         if (parameterTypesAndCallback.length == 0 || !(parameterTypesAndCallback[parameterTypesAndCallback.length - 1] instanceof XC_MethodHook))
             throw new IllegalArgumentException("no callback defined");
 

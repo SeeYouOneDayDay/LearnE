@@ -3,9 +3,8 @@ package me.weishu.epic.samples;
 import android.app.Application;
 import android.content.Context;
 
-import org.lsposed.hiddenapibypass.HiddenApiBypass;
-
-import me.weishu.reflection.Reflection;
+import me.weishu.epic.samples.tests.custom.Case5;
+import uts.MinRefOneClass;
 
 /**
  * Created by weishu on 17/10/31.
@@ -27,7 +26,7 @@ public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        HiddenApiBypass.unseal(this);
-        Reflection.unseal(this);
+        MinRefOneClass.unseal(this);
+        new Case5().hook();
     }
 }

@@ -9,7 +9,7 @@ public class Logger {
 
     private static final boolean DEBUG = true;
 
-    public static final String preFix = "epic";
+    public static final String preFix = "epic.lg";
 
     public static void i(String msg) {
         println(Log.INFO, preFix, msg);

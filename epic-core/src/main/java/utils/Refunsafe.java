@@ -1,4 +1,4 @@
-package me.weishu.epic.samples.tests.custom;
+package utils;
 
 import android.text.TextUtils;
 import android.util.Log;

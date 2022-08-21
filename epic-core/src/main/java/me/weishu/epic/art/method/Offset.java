@@ -82,7 +82,7 @@ public class Offset {
     }
 
     public static long read(long base, Offset offset) {
-        Logger.i(TAG, "read() 入参打印 base:" + base + " , offset:" + offset.offset + " , address: " + (base + offset.offset) + " ； width: " + offset.length.width);
+//        Logger.i(TAG, "read() 入参打印 base:" + base + " , offset:" + offset.offset + " , address: " + (base + offset.offset) + " ； width: " + offset.length.width);
         long address = base + offset.offset;
         byte[] bytes = EpicNative.get(address, offset.length.width);
 //        Logger.i(TAG, "offsetLen: " + offset.length.width + "-----DWORD:" + BitWidth.DWORD.width);

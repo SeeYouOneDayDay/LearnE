@@ -350,7 +350,7 @@ jlong epic_mmap(JNIEnv *env, jclass, jint length) {
     void *space = mmap(0, (size_t) length, PROT_READ | PROT_WRITE | PROT_EXEC,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (space == MAP_FAILED) {
-        LOGV("mmap failed: %d", errno);
+        LOGV("mmap failed: %d", errMakeInitializedClassVisibilyInitializedno);
         return 0;
     }
     return (jlong) space;

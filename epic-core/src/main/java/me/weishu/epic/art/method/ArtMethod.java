@@ -30,6 +30,7 @@ import java.util.Arrays;
 
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
+import utils.AA;
 import utils.Logger;
 import utils.NeverCalled;
 
@@ -99,15 +100,14 @@ public class ArtMethod {
 
     private void init() {
 
-
         if (constructor != null) {
 //            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+constructor+"]=====")));
             address = EpicNative.getMethodAddress(constructor);
-            Logger.d(TAG,"init() constructor :"+constructor +"--->"+address);
+            Logger.d(TAG,"init() getMethodAddress constructor :"+constructor +"--->"+address+"____JAVA___"+ AA.getConstructorAddress(constructor));
         } else {
 //            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+method+"]=====")));
             address = EpicNative.getMethodAddress(method);
-            Logger.d(TAG,"init()  method: "+method+"----->"+address);
+            Logger.d(TAG,"init() getMethodAddress method: "+method+"----->"+address +"____JAVA___"+ AA.getMethodAddress(method));
         }
     }
 
@@ -400,6 +400,7 @@ public class ArtMethod {
      * a bridge, we can not hook these entry. this method force the static method to be resolved.
      */
     public void ensureResolved() {
+        Logger.d(TAG, "inside ensureResolved");
         if (!Modifier.isStatic(getModifiers())) {
             Logger.d(TAG, "not static, ignore.");
             return;
@@ -420,7 +421,7 @@ public class ArtMethod {
      * @return the entry point.
      */
     public long getEntryPointFromQuickCompiledCode() {
-        Logger.i(TAG, "inside getEntryPointFromQuickCompiledCode " );
+//        Logger.i(TAG, "inside getEntryPointFromQuickCompiledCode " );
         return Offset.read(address, Offset.ART_QUICK_CODE_OFFSET);
     }
 
@@ -428,7 +429,7 @@ public class ArtMethod {
      * @param pointer_entry_point_from_quick_compiled_code the entry point.
      */
     public void setEntryPointFromQuickCompiledCode(long pointer_entry_point_from_quick_compiled_code) {
-        Logger.i(TAG, "inside setEntryPointFromQuickCompiledCode: " + pointer_entry_point_from_quick_compiled_code );
+//        Logger.i(TAG, "inside setEntryPointFromQuickCompiledCode: " + pointer_entry_point_from_quick_compiled_code );
         Offset.write(address, Offset.ART_QUICK_CODE_OFFSET, pointer_entry_point_from_quick_compiled_code);
     }
 
@@ -436,23 +437,23 @@ public class ArtMethod {
      * @return the access flags of the method/constructor, not only stand for the modifiers.
      */
     public int getAccessFlags() {
-        Logger.i(TAG, "inside getAccessFlags " );
+//        Logger.i(TAG, "inside getAccessFlags " );
         return (int) Offset.read(address, Offset.ART_ACCESS_FLAG_OFFSET);
     }
 
     public void setAccessFlags(int newFlags) {
-        Logger.i(TAG, "===========设置访问标志的偏移量setAccessFlags【" + newFlags + "】============");
+//        Logger.i(TAG, "===========设置访问标志的偏移量setAccessFlags【" + newFlags + "】============");
 
         Offset.write(address, Offset.ART_ACCESS_FLAG_OFFSET, newFlags);
     }
 
     public void setEntryPointFromJni(long entryPointFromJni) {
-        Logger.i(TAG, "===========设置Jni 入口点的偏移量setEntryPointFromJni【" + entryPointFromJni + "】============");
+//        Logger.i(TAG, "===========设置Jni 入口点的偏移量setEntryPointFromJni【" + entryPointFromJni + "】============");
         Offset.write(address, Offset.ART_JNI_ENTRY_OFFSET, entryPointFromJni);
     }
 
     public long getEntryPointFromJni() {
-        Logger.i(TAG, "===========读取Jni 入口点的偏移量getEntryPointFromJni============");
+//        Logger.i(TAG, "===========读取Jni 入口点的偏移量getEntryPointFromJni============");
 
         return Offset.read(address, Offset.ART_JNI_ENTRY_OFFSET);
     }

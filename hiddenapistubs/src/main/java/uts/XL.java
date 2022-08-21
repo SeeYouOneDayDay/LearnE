@@ -14,7 +14,7 @@ public class XL {
 
     private static final boolean DEBUG = true;
 
-    public static final String preFix = "hiddenapistubs";
+    public static final String preFix = "epic.xl";
 
     public static void i(String msg) {
         println(Log.INFO, preFix, msg);

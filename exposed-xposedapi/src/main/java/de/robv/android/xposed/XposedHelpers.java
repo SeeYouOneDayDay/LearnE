@@ -328,7 +328,7 @@ public final class XposedHelpers {
      * <p>This variant requires that you already have reference to all the parameter types.
      */
     public static Method findMethodExact(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
-        XL.d("XposedHelpers", "inside findMethodExact");
+        XL.d("XposedHelpers", "inside findMethodExact "+clazz.getName()+"."+methodName);
 
         String fullMethodName = clazz.getName() + '#' + methodName + getParametersString(parameterTypes) + "#exact";
 

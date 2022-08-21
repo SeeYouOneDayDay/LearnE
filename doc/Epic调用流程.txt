@@ -1,0 +1,46 @@
+Epic调用流程
+
+1. 【user】 DexposedBridge.findAndHookMethod() 设置替换方法
+---------下面进入内部调用------------
+2. 解析回调
+3. 获取方法-反射
+4. Hook方法生成unhook对象，并放到内存中
+4.1. 检查对象是否为增加，非新增不做处理，新增则如下处理
+4.1.1 判断是否是art模式
+4.1.1.1 art模式， 这种模式下，区别方法、构造函数,下面统一为称方法
+
+4.1.1.1.1 构建生成artmethod对象，默认构造中会通过 Epic库中的getMethodAddress获取对应的方法、构造的地址该方法可替换java层，未大面积测试，是否存在兼容性
+4.1.1.1.2 构建缓存方法(MethodInfo，包含几个方面：是否静态、参数个数、参数类型、返回类型、artMethod方法)，并将之缓存到内存中，键值对形式(键是地址，值是构建缓存方法)
+4.1.1.1.3 确保方法可以访问，如不可访问设置可访问.
+4.1.1.1.4 防止静态方法惰性加载，将静态方法先反射调用一次。如java层反射调用异常，则调用Epic库的MakeInitializedClassVisibilyInitialized
+注意这个过程中需要一个线程的nativePeer值。 获取方法为: Thread.currentThread()的名字为"nativePeer"的变量  注意这部分代码是安卓11和之后版本才生效
+4.1.1.1.5 获取原始方法的入口点，并进行验证，入口点获取如下  [offset]
+            读取地址： 读取方法地址+入口偏移值
+            读取方法： 从读取地址上，+偏移宽度 -- memget(src, length)读取
+            返回值: ByteBuffer生成对应的对象，根据宽度生成long值
+                验证正确性， 获取一个不使用类的方法进行计算 然后和上面算的入口值对比，如一致，则说明未编译，未编译处理如下
+                    调用epic库的compileMethod进行编译，这个过程中也需要nativePeer
+                        对应实现是通过打开libart-compiler.so，知道对应的方法JitCompiler::CompileMethod,然后执行这个方法--这部分还看不太明白
+4.1.1.1.6 备份原方法
+        ArtMethod.back中实现
+            里面有获取对应的 快速编译(更合适的应该说JIT编译)后的入口值、JNI入口值---涉及epic memget(src, length)
+            申请内存块、从内存块读取数据、设置值到特定内存 ---涉及epic  mmap、memget(src, length)、memput(byte[] bytes, long dest)
+            修改对应的native内存地址 (修改方法的artMethod)
+
+4.1.1.1.7 将方法对应关系，存储到内存中，即Epic.java的backupMethodsMapping数据结构中
+        backupMethodsMapping为键值对，键：方法地址，值:方法对应的artmethod
+
+4.1.1.1.8. 根据快速编译后的入口值(JIT编译后的入口值)，生成对应的跳板信息
+            这部分是如何替换还能运行的关键。
+
+
+
+
+
+
+4.1.1.2 非art模式,即dalvik模式
+4.1.1.2.1 获取方法的生命类对象，获取对应的变量 slot
+4.1.1.2.2 区别对待方法、构造，获取参数类型和返回值
+4.1.1.2.3 构造成hook对象信息
+4.1.1.2.4 调用xposed C++层的hookMethodNative方法
+//未来再分析

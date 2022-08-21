@@ -1,4 +1,4 @@
-package me.weishu.epic.samples.tests.custom;
+package utils;
 
 /**
  *Class [sun.misc.Unsafe](http://www.docjar.com/docs/api/sun/misc/Unsafe.html) consists of `105` methods. There are, actually, few groups of important methods for manipulating with various entities. Here is some of them:
@@ -66,8 +66,6 @@ import java.lang.reflect.Method;
  * @author: sanbo
  */
 public class UnsafeHelper {
-    private UnsafeHelper() {
-    }
 
     private static Class<?> unsafeClass = null;
     private static Object unsafe1Obj = null, unsafe2Obj = null, unsafe3Obj = null, unsafe4Obj = null, unsafeObj = null;

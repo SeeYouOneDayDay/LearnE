@@ -17,7 +17,6 @@
 package me.weishu.epic.art;
 
 import android.os.Build;
-import android.util.Log;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -43,8 +42,10 @@ public final class Epic {
 
     private static final String TAG = "Epic";
 
+    // 方法地址--->对应方法
     private static final Map<String, ArtMethod> backupMethodsMapping = new ConcurrentHashMap<>();
 
+    //方法地址--->缓存信息(是否静态、参数个数、参数类型、返回类型、artMethod方法)
     private static final Map<Long, MethodInfo> originSigs = new ConcurrentHashMap<>();
 
     private static final Map<Long, Trampoline> scripts = new HashMap<>();
@@ -96,7 +97,7 @@ public final class Epic {
         methodInfo.method = artOrigin;
 
         originSigs.put(artOrigin.getAddress(), methodInfo);
-        Logger.d("Epic hookMethod() setto MEMORY addr["+artOrigin.getAddress()+"] originSigs:"+originSigs);
+        Logger.d("Epic hookMethod() setto MEMORY addr[" + artOrigin.getAddress() + "] originSigs:" + originSigs);
         if (!artOrigin.isAccessible()) {
             artOrigin.setAccessible(true);
         }
@@ -119,24 +120,42 @@ public final class Epic {
 
         ArtMethod backupMethod = artOrigin.backup();
 
-        Logger.i(TAG, "backup method address:" + Debug.addrHex(backupMethod.getAddress()));
-        Logger.i(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
+//        Logger.i(TAG, "backup method address:" + Debug.addrHex(backupMethod.getAddress()));
+//        Logger.i(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
+
+        Logger.i(TAG, "backup method \r\n\t"
+                + "address:" +backupMethod.getAddress()
+                + "method getEntryPointFromQuickCompiledCode:" +backupMethod.getEntryPointFromQuickCompiledCode()
+                + "method EntryPointFromJni:" +backupMethod.getEntryPointFromJni()
+        );
+        Logger.i(TAG, "artOrigin method \r\n\t"
+                + "address:" +artOrigin.getAddress()
+                + "method getEntryPointFromQuickCompiledCode:" +artOrigin.getEntryPointFromQuickCompiledCode()
+                + "method EntryPointFromJni:" +artOrigin.getEntryPointFromJni()
+        );
 
         ArtMethod backupList = getBackMethod(artOrigin);
-        Logger.e("artOrigin.address:"+artOrigin.getAddress()+"-----backupMethod:"+backupMethod.getAddress());
-        Logger.e("backupMethodsMapping:"+backupMethodsMapping.toString());
+
+//        Logger.e("artOrigin.address:" + artOrigin.getAddress() + "-----backupMethod:" + backupMethod.getAddress());
+        Logger.i(TAG, "backupList method \r\n\t"
+                + "address:" +backupList.getAddress()
+                + "method getEntryPointFromQuickCompiledCode:" +backupList.getEntryPointFromQuickCompiledCode()
+                + "method EntryPointFromJni:" +backupList.getEntryPointFromJni()
+        );
+
         if (backupList == null) {
             setBackMethod(artOrigin, backupMethod);
         }
-
+        Logger.e(TAG,"hookMethod()  backupMethodsMapping:" + backupMethodsMapping.toString());
         final long key = originEntry;
+        // 这部分是创建跳板
         final EntryLock lock = EntryLock.obtain(originEntry);
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (lock) {
             if (!scripts.containsKey(key)) {
                 scripts.put(key, new Trampoline(ShellCode, originEntry));
             }
-            Logger.i("key:"+key +"-----scripts:"+scripts);
+            Logger.i("key:" + key + "-----scripts:" + scripts);
             Trampoline trampoline = scripts.get(key);
             boolean ret = trampoline.install(artOrigin);
             Logger.i(TAG, "hook Method result:" + ret);
@@ -176,7 +195,6 @@ public final class Epic {
         return ret;
 
     }*/
-
     public synchronized static ArtMethod getBackMethod(ArtMethod origin) {
         String identifier = origin.getIdentifier();
         return backupMethodsMapping.get(identifier);
