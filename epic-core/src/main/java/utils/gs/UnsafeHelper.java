@@ -59,7 +59,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import utils.Logger;
-import utils.Runtime;
 
 /**
  * @Copyright © 2022 sanbo Inc. All rights reserved.
@@ -870,6 +869,7 @@ public class UnsafeHelper {
     }
 
 
+
     //https://github.com/tiann/epic/blob/master/library/src/main/java/com/taobao/android/dexposed/utility/Unsafe.java
     public static long getObjectAddress(Object obj) {
         try {
@@ -884,24 +884,25 @@ public class UnsafeHelper {
         }
     }
 
-    //https://github.com/tiann/epic/blob/master/library/src/main/java/com/taobao/android/dexposed/utility/Unsafe.java
-    // @TODO  USE BY Object getObject(long self, long address)
-
-    /**
-     * get Object from address, refer: http://mishadoff.com/blog/java-magic-part-4-sun-dot-misc-dot-unsafe/
-     * @param address the address of a object.
-     * @return
-     */
-    public static Object getObject(long address) {
-        Object[] array = new Object[]{null};
-        long baseOffset = arrayBaseOffset(Object[].class);
-        if (Runtime.is64Bit()) {
-            putLong(array, baseOffset, address);
-        } else {
-            putInt(array, baseOffset, (int) address);
-        }
-        return array[0];
-    }
+//    //https://github.com/tiann/epic/blob/master/library/src/main/java/com/taobao/android/dexposed/utility/Unsafe.java
+//    // @TODO  USE BY Object getObject(long self, long address)
+//
+//    //// 这个方法会崩溃
+//    /**
+//     * get Object from address, refer: http://mishadoff.com/blog/java-magic-part-4-sun-dot-misc-dot-unsafe/
+//     * @param address the address of a object.
+//     * @return
+//     */
+//    public static Object getObject(long address) {
+//        Object[] array = new Object[]{null};
+//        long baseOffset = arrayBaseOffset(Object[].class);
+//        if (Runtime.is64Bit()) {
+//            putLong(array, baseOffset, address);
+//        } else {
+//            putInt(array, baseOffset, (int) address);
+//        }
+//        return array[0];
+//    }
 
 
     // 可替代 memput(bytes, dest)

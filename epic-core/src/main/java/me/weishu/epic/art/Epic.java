@@ -47,6 +47,7 @@ public final class Epic {
     //方法地址--->缓存信息(是否静态、参数个数、参数类型、返回类型、artMethod方法)
     private static final Map<Long, MethodInfo> originSigs = new ConcurrentHashMap<>();
 
+    //快速编译后入口值(JIT编译地址)--->蹦床信息
     private static final Map<Long, Trampoline> scripts = new HashMap<>();
     private static ShellCode ShellCode;
 
@@ -137,24 +138,28 @@ public final class Epic {
         ArtMethod backupList = getBackMethod(artOrigin);
 
 //        Logger.e("artOrigin.address:" + artOrigin.getAddress() + "-----backupMethod:" + backupMethod.getAddress());
-        Logger.e("backupList :" + backupList);
+        Logger.d("backupList :" + backupList);
 
 
         if (backupList == null) {
             setBackMethod(artOrigin, backupMethod);
         }
+        Logger.i(TAG, "==========hookMethod=========info===="
+                + "\r\n\t------artOrigin method-----"
+                + "\r\n\t\taddress:" + artOrigin.getAddress()
+                + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
+                + "\r\n\t\tmethod EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
+
+                + "\r\n\t-----backup method------"
+                + "\r\n\t\taddress:" + backupMethod.getAddress()
+                + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + backupMethod.getEntryPointFromQuickCompiledCode()
+                + "\r\n\t\tmethod EntryPointFromJni:" + backupMethod.getEntryPointFromJni()
+
+
+        );
         if (backupList != null) {
 
-            Logger.i(TAG, "==========hookMethod=========info===="
-                    + "\r\n\t------artOrigin method-----"
-                    + "\r\n\t\taddress:" + artOrigin.getAddress()
-                    + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
-                    + "\r\n\t\tmethod EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
-
-                    + "\r\n\t-----backup method------"
-                    + "\r\n\t\taddress:" + backupMethod.getAddress()
-                    + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + backupMethod.getEntryPointFromQuickCompiledCode()
-                    + "\r\n\t\tmethod EntryPointFromJni:" + backupMethod.getEntryPointFromJni()
+            Logger.i(TAG, "==========backupList=========info===="
 
                     + "\r\n\t-----backupList method------"
                     + "\r\n\t\taddress:" + backupList.getAddress()
@@ -163,7 +168,7 @@ public final class Epic {
             );
         }
 
-        Logger.e(TAG, "hookMethod()  backupMethodsMapping:" + backupMethodsMapping.toString());
+        Logger.d(TAG, "hookMethod()  backupMethodsMapping:" + backupMethodsMapping.toString());
         final long key = originEntry;
         // 这部分是创建跳板
         final EntryLock lock = EntryLock.obtain(originEntry);

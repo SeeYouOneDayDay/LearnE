@@ -1,5 +1,7 @@
 Epic调用流程
 
+我个人的的理解： 不修改原方法地址，修改跳转到原方法的地址。
+
 1. 【user】 DexposedBridge.findAndHookMethod() 设置替换方法
 ---------下面进入内部调用------------
 2. 解析回调
@@ -39,8 +41,8 @@ Epic调用流程
             hook过的放内存，防止重复存放-----Set<ArtMethod> segments
             ----------
             这部分是如何替换还能运行的关键。
-
-
+            区别各平台通过汇编来跳转
+            真正绑定是通过epic native方法epic_activate来绑定
 
 
 
@@ -51,5 +53,4 @@ Epic调用流程
 4.1.1.2.3 构造成hook对象信息
 4.1.1.2.4 调用xposed C++层的hookMethodNative方法
 //未来再分析
-
 

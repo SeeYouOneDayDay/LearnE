@@ -31,12 +31,18 @@ class Trampoline {
     private static final String TAG = "Trampoline";
 
     private final ShellCode shellCode;
+    // JIT编译后的地址，同entryPoint
     public final long jumpToAddress;
+    // 原始值
     public final byte[] originalCode;
+    // 中间值的大小。蹦床大小
     public int trampolineSize;
+    //  中间值的地址。蹦床地址
     public long trampolineAddress;
+    // 是否应用
     public boolean active;
 
+    // 防止重复方法
     // private ArtMethod artOrigin;
     private Set<ArtMethod> segments = new HashSet<>();
 

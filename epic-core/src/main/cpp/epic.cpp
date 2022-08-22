@@ -267,10 +267,10 @@ jboolean epic_munprotect(JNIEnv *env, jclass, jlong addr, jlong len) {
     unsigned alignment = (unsigned) ((unsigned long long) addr % pagesize);
     LOGV("munprotect page size: %d, alignment: %d", pagesize, alignment);
 
-//    mprotect()函数可以用来修改一段指定内存区域的保护属性
-//https://bbs.pediy.com/thread-266527.htm
-//https://bbs.huaweicloud.com/blogs/325120
-//http://drops.xmd5.com/static/drops/papers-10156.html
+    //    mprotect()函数可以用来修改一段指定内存区域的保护属性
+    //https://bbs.pediy.com/thread-266527.htm
+    //https://bbs.huaweicloud.com/blogs/325120
+    //http://drops.xmd5.com/static/drops/papers-10156.html
     int i = mprotect((void *) (addr - alignment), (size_t) (alignment + len),
                      PROT_READ | PROT_WRITE | PROT_EXEC);
     if (i == -1) {

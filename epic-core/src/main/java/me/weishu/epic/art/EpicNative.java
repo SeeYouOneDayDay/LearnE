@@ -19,7 +19,6 @@ package me.weishu.epic.art;
 import java.lang.reflect.Member;
 
 import de.robv.android.xposed.XposedHelpers;
-import utils.Debug;
 import utils.DeviceCheck;
 import utils.Logger;
 import utils.gs.UnsafeHelper;
@@ -70,15 +69,6 @@ public final class EpicNative {
     public static native long getMethodAddress(Member method);
 
 
-    public static Object getObject(long self, long address) {
-        if (useUnsafe) {
-            Logger.d(TAG, "使用Unsafe方式获取对象");
-            return UnsafeHelper.getObject(address);
-        } else {
-            Logger.d(TAG, "使用native方式获取对象");
-            return getObjectNative(self, address);
-        }
-    }
 
     public static native boolean compileMethod(Member method, long self);
 
@@ -139,6 +129,22 @@ public final class EpicNative {
     }
 
 
+    public static Object getObject(long self, long address) {
+        Logger.e(TAG, "getObject============"+useUnsafe
+                +"-------"
+                +"\r\n\tnative: "+getObjectNative(self, address)
+                +"\r\n\tplan2: "+ UnsafeHelper.fromAddress(address)
+        );
+        if (useUnsafe) {
+            Logger.d(TAG, "使用Unsafe方式获取对象");
+            //必然崩溃
+//            return UnsafeHelper.getObject(address);
+            return UnsafeHelper.fromAddress(address);
+        } else {
+            Logger.d(TAG, "使用native方式获取对象");
+            return getObjectNative(self, address);
+        }
+    }
     /**
      *  Thread
      *      private volatile long nativePeer;

@@ -1,0 +1,33 @@
+
+基础数据结构
+1. [ArtMethod]封装的基础数据结构，包含内容: 地址、构造/方法、备份方法标记(也是artmethod，如是备份，则该值为源artmethod)、artmethodsize(计算方法固定)
+
+2. [MethodInfo]方法详情。包含:是否静态、参数个数、参数类型、返回类型、artMethod
+
+3. [EntryLock] 方法地址及锁状态，用于创建跳板前同步所用
+
+4. [Trampoline] 可以理解成方法跳板. 包含内容: 对应平台信息、目标跳转地址、原始内容、蹦床地址、蹦床size、是否已经生效、防重复artmethod数据结构
+
+5. [ShellCode] 对应平台信息。分为Arm64/Thumb2/Arm64_2(这个貌似没用)。 个人理解是调整中间跳转平台的地址。 含几个方法: 创建直接跳转内容(一段适配平台的汇编代码)、直接跳转大小、toPC(?)、toMem(?)。。。
+
+工作中动态生成的数据结构:
+
+1. [DexposedBridge]需要回调的函数集合(hookedMethodCallbacks)
+   数据结构: map
+   内容: 回调方法---对应hook详情接口列表(before/after等)，此处为set
+
+2. [DexposedBridge]HOOK函数列表(allUnhookCallbacks)
+   数据结构: ArrayList
+   内容: 回调函数构建的回调方法列表
+
+3. [epic]备份方法地址集合(backupMethodsMapping):
+	数据结构:map
+	内容： 方法地址---ArtMethod
+
+4. [epic]地址及方法详情(originSigs)：
+	数据结构:map
+	内容: 方法地址---方法详情
+
+5. [epic]快速编译后入口值及跳板信息结合(scripts)：
+	数据结构:map
+	内容: 快速编译后入口值(JIT编译地址)--->蹦床信息
