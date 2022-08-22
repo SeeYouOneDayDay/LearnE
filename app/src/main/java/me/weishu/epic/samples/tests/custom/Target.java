@@ -1,12 +1,12 @@
 package me.weishu.epic.samples.tests.custom;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.method.ArtMethod;
+import utils.Logger;
 
 /**
  * Created by weishu on 17/11/3.
@@ -18,7 +18,7 @@ public class Target {
     }
 
     public int test1(Object a, int b) {
-        Log.i("mylog", "test1, arg1: " + a + " , arg2:" + b);
+        Logger.i("mylog", "test1, arg1: " + a + " , arg2:" + b);
         new Runnable() {
 
             @Override
@@ -26,9 +26,9 @@ public class Target {
                 final Method enclosingMethod = getClass().getEnclosingMethod();
                 long entry = ArtMethod.of(enclosingMethod).getEntryPointFromQuickCompiledCode();
                 if (entry != ArtMethod.getQuickToInterpreterBridge()) {
-                    Log.w("mylog", "method compiled....");
+                    Logger.w("mylog", "method compiled....");
                 }
-                Log.i("mylog", enclosingMethod + "entry: point: 0x" + Long.toHexString(entry));
+                Logger.i("mylog", enclosingMethod + "entry: point: 0x" + Long.toHexString(entry));
             }
         }.run();
 
@@ -48,7 +48,7 @@ public class Target {
     }
 
     public int test3(Object a, int b) {
-        Log.i("mylog", "test1, arg1: " + a + " , arg2:" + b);
+        Logger.i("mylog", "test1, arg1: " + a + " , arg2:" + b);
         return a.hashCode() + b;
     }
 
@@ -62,7 +62,7 @@ public class Target {
     }
 
     public static int test2(Object a, int b) {
-        Log.i("mylog", "test1, arg1: " + a + " , arg2:" + b);
+        Logger.i("mylog", "test1, arg1: " + a + " , arg2:" + b);
 
         return a.hashCode() + b;
     }
@@ -77,9 +77,9 @@ public class Target {
 
         long entry = ArtMethod.of(validate).getEntryPointFromQuickCompiledCode();
         if (entry != ArtMethod.getQuickToInterpreterBridge()) {
-            Log.w("mylog", "method compiled....");
+            Logger.w("mylog", "method compiled....");
             new Target().test1("123", 1);
         }
-        Log.i("mylog", validate + "entry: point: 0x" + Long.toHexString(entry));
+        Logger.i("mylog", validate + "entry: point: 0x" + Long.toHexString(entry));
     }
 }

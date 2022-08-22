@@ -31,11 +31,11 @@ class Trampoline {
     private static final String TAG = "Trampoline";
 
     private final ShellCode shellCode;
-    private final long jumpToAddress;
-    private final byte[] originalCode;
-    private int trampolineSize;
-    private long trampolineAddress;
-    private boolean active;
+    public final long jumpToAddress;
+    public final byte[] originalCode;
+    public int trampolineSize;
+    public long trampolineAddress;
+    public boolean active;
 
     // private ArtMethod artOrigin;
     private Set<ArtMethod> segments = new HashSet<>();
@@ -69,9 +69,12 @@ class Trampoline {
             originMethod.setEntryPointFromQuickCompiledCode(getTrampolinePc());
             return true;
         }
+
         // 这里是绝对不能改EntryPoint的，碰到GC就挂(GC暂停线程的时候，遍历所有线程堆栈，如果被hook的方法在堆栈上，那就GG)
         // source.setEntryPointFromQuickCompiledCode(script.getTrampolinePc());
+        //绑定让其执行
         return activate();
+//        return true;
     }
 
     private long getTrampolineAddress() {

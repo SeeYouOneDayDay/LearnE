@@ -123,16 +123,16 @@ public final class Epic {
 //        Logger.i(TAG, "backup method address:" + Debug.addrHex(backupMethod.getAddress()));
 //        Logger.i(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
 
-        Logger.i(TAG, "backup method \r\n\t"
-                + "address:" + backupMethod.getAddress()
-                + "method getEntryPointFromQuickCompiledCode:" + backupMethod.getEntryPointFromQuickCompiledCode()
-                + "method EntryPointFromJni:" + backupMethod.getEntryPointFromJni()
-        );
-        Logger.i(TAG, "artOrigin method \r\n\t"
-                + "address:" + artOrigin.getAddress()
-                + "method getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
-                + "method EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
-        );
+//        Logger.i(TAG, "==========hookMethod=========info===="
+//                + "\r\n\tbackup method "
+//                + "\r\n\t\taddress:" + backupMethod.getAddress()
+//                + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + backupMethod.getEntryPointFromQuickCompiledCode()
+//                + "\r\n\t\tmethod EntryPointFromJni:" + backupMethod.getEntryPointFromJni()
+//                + "\r\n\tartOrigin method"
+//                + "\r\n\t\taddress:" + artOrigin.getAddress()
+//                + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
+//                + "\r\n\t\tmethod EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
+//        );
 
         ArtMethod backupList = getBackMethod(artOrigin);
 
@@ -144,10 +144,22 @@ public final class Epic {
             setBackMethod(artOrigin, backupMethod);
         }
         if (backupList != null) {
-            Logger.i(TAG, "backupList method \r\n\t"
-                    + "address:" + backupList.getAddress()
-                    + "method getEntryPointFromQuickCompiledCode:" + backupList.getEntryPointFromQuickCompiledCode()
-                    + "method EntryPointFromJni:" + backupList.getEntryPointFromJni()
+
+            Logger.i(TAG, "==========hookMethod=========info===="
+                    + "\r\n\t------artOrigin method-----"
+                    + "\r\n\t\taddress:" + artOrigin.getAddress()
+                    + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
+                    + "\r\n\t\tmethod EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
+
+                    + "\r\n\t-----backup method------"
+                    + "\r\n\t\taddress:" + backupMethod.getAddress()
+                    + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + backupMethod.getEntryPointFromQuickCompiledCode()
+                    + "\r\n\t\tmethod EntryPointFromJni:" + backupMethod.getEntryPointFromJni()
+
+                    + "\r\n\t-----backupList method------"
+                    + "\r\n\t\taddress:" + backupList.getAddress()
+                    + "\r\n\t\tmethod getEntryPointFromQuickCompiledCode:" + backupList.getEntryPointFromQuickCompiledCode()
+                    + "\r\n\t\tmethod EntryPointFromJni:" + backupList.getEntryPointFromJni()
             );
         }
 
@@ -162,8 +174,34 @@ public final class Epic {
             }
             Logger.i("key:" + key + "-----scripts:" + scripts);
             Trampoline trampoline = scripts.get(key);
+
+
+            Logger.i(TAG, "============before trampoline install======="
+                    + "\r\n\tartOrigin method"
+                    + "\r\n\t\taddress:" + artOrigin.getAddress()
+                    + "\r\n\t\tmethod originEntry getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
+                    + "\r\n\t\tmethod EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
+                    + "\r\n\t\tmethod trampoline jumpToAddress:" + trampoline.jumpToAddress
+                    + "\r\n\t\tmethod trampoline originalCode:" + trampoline.originalCode
+                    + "\r\n\t\tmethod trampoline trampolineSize:" + trampoline.trampolineSize
+                    + "\r\n\t\tmethod trampoline trampolineAddress:" + trampoline.trampolineAddress
+                    + "\r\n\t\tmethod trampoline active:" + trampoline.active
+            );
+
             boolean ret = trampoline.install(artOrigin);
             Logger.i(TAG, "hook Method result:" + ret);
+
+            Logger.i(TAG, "============after trampoline install======="
+                    + "\r\n\tartOrigin method"
+                    + "\r\n\t\taddress:" + artOrigin.getAddress()
+                    + "\r\n\t\tmethod originEntry getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
+                    + "\r\n\t\tmethod EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
+                    + "\r\n\t\tmethod trampoline jumpToAddress:" + trampoline.jumpToAddress
+                    + "\r\n\t\tmethod trampoline originalCode:" + trampoline.originalCode
+                    + "\r\n\t\tmethod trampoline trampolineSize:" + trampoline.trampolineSize
+                    + "\r\n\t\tmethod trampoline trampolineAddress:" + trampoline.trampolineAddress
+                    + "\r\n\t\tmethod trampoline active:" + trampoline.active
+            );
             return ret;
         }
     }

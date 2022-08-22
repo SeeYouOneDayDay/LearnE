@@ -42,8 +42,11 @@ import me.weishu.epic.samples.tests.custom.Case11_SuspendAll;
 import me.weishu.epic.samples.tests.custom.Case12_MultiCallback;
 import me.weishu.epic.samples.tests.custom.Case13_FastNative;
 import me.weishu.epic.samples.tests.custom.Case14_GC;
+import me.weishu.epic.samples.tests.custom.Case15_StopJit;
+import me.weishu.epic.samples.tests.custom.Case16_SameEntry;
 import me.weishu.epic.samples.tests.custom.Case17_SameMethod;
 import me.weishu.epic.samples.tests.custom.Case18_returnConst;
+import me.weishu.epic.samples.tests.custom.Case19;
 import me.weishu.epic.samples.tests.custom.Case2;
 import me.weishu.epic.samples.tests.custom.Case3;
 import me.weishu.epic.samples.tests.custom.Case4;
@@ -173,16 +176,17 @@ public class TestManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             CaseManager.getInstance().getCase(Case11_SuspendAll.class);
             CaseManager.getInstance().getCase(Case14_GC.class);
-            // CaseManager.getInstance().getCase(Case15_StopJit.class);
+//             CaseManager.getInstance().getCase(Case15_StopJit.class);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CaseManager.getInstance().getCase(Case13_FastNative.class);
         }
 
-        // CaseManager.getInstance().getCase(Case16_SameEntry.class);
+         CaseManager.getInstance().getCase(Case16_SameEntry.class);
         CaseManager.getInstance().getCase(Case17_SameMethod.class);
         CaseManager.getInstance().getCase(Case18_returnConst.class);
+        CaseManager.getInstance().getCase(Case19.class);
 
         final Set<Class<?>> cases = CaseManager.getInstance().getCases();
         for (final Class<?> aCase : cases) {

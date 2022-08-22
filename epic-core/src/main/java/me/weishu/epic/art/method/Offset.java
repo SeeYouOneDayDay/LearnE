@@ -103,16 +103,16 @@ public class Offset {
     public static void write(long base, Offset offset, long value) {
 
         long address = base + offset.offset;
-        Logger.i(TAG, "write()  base:" + base + " ,offset: " + offset.offset + "----value:" + value + "-----address:" + address);
+//        Logger.i(TAG, "write()  base:" + base + " ,offset: " + offset.offset + "----value:" + value + "-----address:" + address);
         byte[] bytes;
-        Logger.i(TAG, "write()  offsetLen:" + offset.length.width + " ,DWORD: " + BitWidth.DWORD.width);
+//        Logger.i(TAG, "write()  offsetLen:" + offset.length.width + " ,DWORD: " + BitWidth.DWORD.width);
 
         if (offset.length == BitWidth.DWORD) {
             if (value > 0xFFFFFFFFL) {
-                Logger.e(TAG, "write()  overflow may occur will exception ");
+//                Logger.e(TAG, "write()  overflow may occur will exception ");
                 throw new IllegalStateException("overflow may occur");
             } else {
-                Logger.i(TAG, "write()  allocate 4 ");
+//                Logger.i(TAG, "write()  allocate 4 ");
                 bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt((int) value).array();
             }
         } else {

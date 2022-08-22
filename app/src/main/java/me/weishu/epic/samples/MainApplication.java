@@ -3,6 +3,7 @@ package me.weishu.epic.samples;
 import android.app.Application;
 import android.content.Context;
 
+import me.weishu.epic.samples.tests.custom.Case19;
 import me.weishu.epic.samples.tests.custom.Case5;
 import uts.MinRefOneClass;
 
@@ -28,5 +29,6 @@ public class MainApplication extends Application {
         super.onCreate();
         MinRefOneClass.unseal(this);
         new Case5().hook();
+        new Case19().hook();
     }
 }

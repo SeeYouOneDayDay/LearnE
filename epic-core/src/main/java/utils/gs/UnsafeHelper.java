@@ -930,6 +930,68 @@ public class UnsafeHelper {
         return dst;
     }
 
+
+    public static long mmap(int length) {
+//        long dstBuf = UnsafeHelper.allocateMemory(length);
+//        UnsafeHelper.copyMemory(UnsafeHelper.allocateMemory(length), dstBuf, length);
+//        return dstBuf;
+
+
+        // planA 失败
+//        byte[] src=new byte[length];
+//        long srcBuf=UnsafeHelper.allocateMemory(src.length);
+//        // plan B 失败
+//        long srcBuf=UnsafeHelper.allocateMemory(length);
+//
+//        for (int i = 0; i <length ; i++) {
+//           MemoryHelper. pokeByte(srcBuf, (byte)0);
+//        }
+        // return srcBuf;
+        // plan C 成功
+//        Os.mmap
+        //libcore/luni/src/main/java/libcore/io/Libcore.java
+        Object os = Refunsafe.getFieldValue("libcore.io.Libcore", "rawOs");
+        //    public long mmap(long address, long byteCount, int prot, int flags, FileDescriptor fd, long offset) throws ErrnoException;
+        //mmap(0, (size_t) length, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        int prot = 0x1 | 0x2 | 0x4;
+        int flags = 0x02 | 0x20;
+        long address = (long) Refunsafe.call("libcore.io.Os", "mmap", os
+                , new Class[]{long.class, long.class, int.class, int.class, java.io.FileDescriptor.class, long.class}
+                , new Object[]{0, length, prot, flags, new java.io.FileDescriptor(), 0}
+        );
+        return address;
+    }
+
+    public static boolean munmap(long address, int length) {
+        //libcore/luni/src/main/java/libcore/io/Libcore.java
+        Object os = Refunsafe.getFieldValue("libcore.io.Libcore", "rawOs");
+
+        // public void munmap(long address, long byteCount) throws ErrnoException;
+        Refunsafe.call("libcore.io.Os", "munmap", os
+                , new Class[]{long.class, long.class}
+                , new Object[]{address, length}
+        );
+        return true;
+    }
+
+    /**
+     * 参考 https://cs.android.com/android/platform/superproject/+/master:libcore/ojluni/src/main/java/sun/nio/ch/Util.java
+     * 可以用这个方法尝试擦除static void erase(ByteBuffer bb)
+     * 最终调用unsafe.setMemory(((DirectBuffer)bb).address(), bb.capacity(), (byte)0);
+     * @param address
+     * @param length
+     * @return
+     */
+    public static boolean unmap(long address, int length) {
+        try {
+            setMemory(address, length, (byte) 0);
+        } catch (Throwable e) {
+            return false;
+        }
+        return true;
+    }
+
+
     /*****************************基础方法***********************/
 
     public static void d(String s) {

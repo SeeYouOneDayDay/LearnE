@@ -10,6 +10,7 @@ import de.robv.android.xposed.DexposedBridge;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.method.ArtMethod;
+import utils.Logger;
 
 /**
  * Created by weishu on 18/1/8.
@@ -26,22 +27,22 @@ public class Case16_SameEntry implements Case {
         ArtMethod artMethod3 = ArtMethod.of(add);
         ArtMethod artMethod4 = ArtMethod.of(plus);
 
-        Log.i(TAG, "plus: addr: " + Debug.addrHex(artMethod3.getAddress()) + ", entry:"
+        Logger.i(TAG, "plus: addr: " + Debug.addrHex(artMethod3.getAddress()) + ", entry:"
                 + Debug.addrHex(artMethod3.getEntryPointFromQuickCompiledCode()));
-        Log.i(TAG, "milus: addr: " + Debug.addrHex(artMethod4.getAddress()) + ", entry:"
+        Logger.i(TAG, "milus: addr: " + Debug.addrHex(artMethod4.getAddress()) + ", entry:"
                 + Debug.addrHex(artMethod4.getEntryPointFromQuickCompiledCode()));
 
         DexposedBridge.hookMethod(add, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
-                Log.d(TAG, "beforeHookedMethod() called with: param = [" + param + "]");
+                Logger.d(TAG, "beforeHookedMethod() called with: param = [" + param + "]");
             }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
-                Log.d(TAG, "afterHookedMethod() called with: param = [" + param + "]");
+                Logger.d(TAG, "afterHookedMethod() called with: param = [" + param + "]");
             }
         });
 
@@ -49,13 +50,13 @@ public class Case16_SameEntry implements Case {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
-                Log.d(TAG, "beforeHookedMethod() called with: param = [" + param + "]");
+                Logger.d(TAG, "beforeHookedMethod() called with: param = [" + param + "]");
             }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
-                Log.d(TAG, "afterHookedMethod() called with: param = [" + param + "]");
+                Logger.d(TAG, "afterHookedMethod() called with: param = [" + param + "]");
             }
         });
     }
@@ -64,9 +65,9 @@ public class Case16_SameEntry implements Case {
     public boolean validate(Object... args) {
         Target target = new Target();
         int add = target.add(1, 2);
-        Log.i(TAG, "1 + 2 = " + add);
+        Logger.i(TAG, "1 + 2 = " + add);
         int plus = target.plus(3, 4);
-        Log.i(TAG, "3 + 4 = " + plus);
+        Logger.i(TAG, "3 + 4 = " + plus);
         return true;
     }
 }

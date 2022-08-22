@@ -72,7 +72,7 @@ public class Case5 implements Case {
         tv.setPadding(99, 99, 99, 99);
 
 
-        Logger.d("Case5", "--->" + tv.getLeft());
+        Logger.d("Case5", "执行后--->" + tv.getLeft());
         return true;
     }
 }

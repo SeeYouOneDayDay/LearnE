@@ -30,9 +30,9 @@ import java.util.Arrays;
 
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
-import utils.gs.ArtHelper;
 import utils.Logger;
 import utils.NeverCalled;
+import utils.gs.ArtHelper;
 
 /**
  * Object stands for a Java Method, may be a constructor or a method.
@@ -426,15 +426,15 @@ public class ArtMethod {
                 method.invoke(null);
             }
             if (constructor != null) {
-                constructor.newInstance((Object[])null);
+                constructor.newInstance((Object[]) null);
             }
             Logger.d(TAG, "ensure resolved");
         } catch (Exception ignored) {
             // we should never make a successful call.
             Logger.e(ignored);
         } finally {
-            Logger.d(TAG, "------");
-//            EpicNative.MakeInitializedClassVisibilyInitialized();
+            Logger.d(TAG, "---貌似注释去除也可以正常使用。需要大面积兼容测试---");
+            EpicNative.MakeInitializedClassVisibilyInitialized();
         }
     }
 
@@ -451,7 +451,7 @@ public class ArtMethod {
      * @param pointer_entry_point_from_quick_compiled_code the entry point.
      */
     public void setEntryPointFromQuickCompiledCode(long pointer_entry_point_from_quick_compiled_code) {
-//        Logger.i(TAG, "inside setEntryPointFromQuickCompiledCode: " + pointer_entry_point_from_quick_compiled_code );
+        Logger.i(TAG, "inside setEntryPointFromQuickCompiledCode: " + pointer_entry_point_from_quick_compiled_code);
         Offset.write(address, Offset.ART_QUICK_CODE_OFFSET, pointer_entry_point_from_quick_compiled_code);
     }
 

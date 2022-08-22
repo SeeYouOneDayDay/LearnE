@@ -80,12 +80,11 @@ public class Entry {
     private static byte onHookByte(Object artmethod, Object receiver, Object[] args) {
         return (Byte) DexposedBridge.handleHookedArtMethod(artmethod, receiver, args);
     }
-    //endregion
+    //endregion   private static void voidBridge(int r1, int self, int struct) {
+    //        referenceBridge(r1, self, struct);
+    //    }
 
     //region ---------------bridge---------------
-    private static void voidBridge(int r1, int self, int struct) {
-        referenceBridge(r1, self, struct);
-    }
 
     private static boolean booleanBridge(int r1, int self, int struct) {
         return (Boolean) referenceBridge(r1, self, struct);

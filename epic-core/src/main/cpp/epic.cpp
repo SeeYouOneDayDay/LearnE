@@ -85,7 +85,9 @@ void (*jit_unload_)(void *) = nullptr;
  */
 class ScopedSuspendAll {
 };
+
 void (*suspendAll)(ScopedSuspendAll *, char *) = nullptr;
+
 void (*resumeAll)(ScopedSuspendAll *) = nullptr;
 
 class ScopedJitSuspend {
@@ -192,7 +194,8 @@ void init_entries(JNIEnv *env) {
 }
 
 jboolean epic_compile(JNIEnv *env, jclass, jobject method, jlong self) {
-    LOGV("epic_compile() self from native peer: %p, from register: %p", reinterpret_cast<void *>(self), __self());
+    LOGV("epic_compile() self from native peer: %p, from register: %p",
+         reinterpret_cast<void *>(self), __self());
     jlong art_method = (jlong) env->FromReflectedMethod(method);
 
     if (art_method % 2 == 1) {
@@ -229,7 +232,9 @@ jboolean epic_compile(JNIEnv *env, jclass, jobject method, jlong self) {
 }
 
 jlong epic_suspendAll(JNIEnv *, jclass) {
+    // 申请内存
     ScopedSuspendAll *scopedSuspendAll = (ScopedSuspendAll *) malloc(sizeof(ScopedSuspendAll));
+    //  将要调用的函数放进去
     suspendAll(scopedSuspendAll, "stop_jit");
     return reinterpret_cast<jlong >(scopedSuspendAll);
 }
@@ -256,10 +261,16 @@ void epic_disableMovingGc(JNIEnv *env, jclass, jint api) {
 }
 
 jboolean epic_munprotect(JNIEnv *env, jclass, jlong addr, jlong len) {
+    //sysconf - 在运行时获取配置信息。 这是个查看缓存内存页面大小
+    // 有一个获取物理内存的小的方案：通过将 sysconf (_SC_PHYS_PAGES) 和 sysconf (_SC_PAGESIZE) 相乘，来确定物理内存的总量 (以字节为单位) 可以返回一个值
     long pagesize = sysconf(_SC_PAGESIZE);
     unsigned alignment = (unsigned) ((unsigned long long) addr % pagesize);
     LOGV("munprotect page size: %d, alignment: %d", pagesize, alignment);
 
+//    mprotect()函数可以用来修改一段指定内存区域的保护属性
+//https://bbs.pediy.com/thread-266527.htm
+//https://bbs.huaweicloud.com/blogs/325120
+//http://drops.xmd5.com/static/drops/papers-10156.html
     int i = mprotect((void *) (addr - alignment), (size_t) (alignment + len),
                      PROT_READ | PROT_WRITE | PROT_EXEC);
     if (i == -1) {
@@ -309,7 +320,7 @@ void epic_memput(JNIEnv *env, jclass, jbyteArray src, jlong dest) {
     // 获取目标指针
     unsigned char *destPnt = (unsigned char *) dest;
     for (int i = 0; i < length; ++i) {
-         LOGV("epic_memput() put %d with %d", i, *(srcPnt + i));
+        LOGV("epic_memput() put %d with %d", i, *(srcPnt + i));
         destPnt[i] = (unsigned char) srcPnt[i];
     }
     env->ReleaseByteArrayElements(src, srcPnt, 0);
@@ -334,9 +345,10 @@ jbyteArray epic_memget(JNIEnv *env, jclass, jlong src, jint length) {
     }
     //释放. what.
     env->ReleaseByteArrayElements(dest, (jbyte *) destPnt, 0);
-    LOGD("epic_memget() , dest: %p, destPnt: %p, srcPnt: %p ", (void *)dest, destPnt,srcPnt);
+    LOGD("epic_memget() , dest: %p, destPnt: %p, srcPnt: %p ", (void *) dest, destPnt, srcPnt);
     return dest;
 }
+
 jobject epic_getobject(JNIEnv *env, jclass clazz, jlong self, jlong address) {
     JavaVM *vm;
     env->GetJavaVM(&vm);
@@ -356,6 +368,7 @@ jlong epic_mmap(JNIEnv *env, jclass, jint length) {
     return (jlong) space;
 }
 
+//释放制定地址后的地址
 void epic_munmap(JNIEnv *env, jclass, jlong addr, jint length) {
     int r = munmap((void *) addr, (size_t) length);
     if (r == -1) {
@@ -363,6 +376,7 @@ void epic_munmap(JNIEnv *env, jclass, jlong addr, jint length) {
     }
 }
 
+//这个单纯申请空间。
 jlong epic_malloc(JNIEnv *env, jclass, jint size) {
     size_t length = sizeof(void *) * size;
     void *ptr = malloc(length);
@@ -386,6 +400,8 @@ jboolean epic_isGetObjectAvaliable(JNIEnv *, jclass) {
     return (jboolean) (addWeakGloablReference != nullptr);
 }
 
+
+//activateNative(long jumpToAddress, long pc, long sizeOfTargetJump, long sizeOfBridgeJump, byte[] code)
 jboolean
 epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong sizeOfDirectJump,
               jlong sizeOfBridgeJump, jbyteArray code) {
@@ -409,15 +425,19 @@ epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong s
         // we must suspend all thread to ensure the atomic operation.
 
         LOGV("suspend all thread.");
+        //android 7+ 暂停所有线程
         cookie = epic_suspendAll(env, jclazz);
     }
 
+    // 修改对应地址的权限
     jboolean result = epic_munprotect(env, jclazz, jumpToAddress, sizeOfDirectJump);
     if (result) {
+        // 修改地址权限
         unsigned char *destPnt = (unsigned char *) jumpToAddress;
         for (int i = 0; i < length; ++i) {
             destPnt[i] = (unsigned char) srcPnt[i];
         }
+        // 清除缓存
         jboolean ret = epic_cacheflush(env, jclazz, pc, sizeOfBridgeJump);
         if (!ret) {
             LOGV("cache flush failed!!");
@@ -428,9 +448,9 @@ epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong s
 
     if (cookie != 0) {
         LOGV("resume all thread.");
+        // 重新开放JIT编译
         epic_resumeAll(env, jclazz, cookie);
     }
-
     env->ReleaseByteArrayElements(code, srcPnt, 0);
     return result;
 }

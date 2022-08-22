@@ -167,22 +167,35 @@ public final class EpicNative {
     }
 
     public static long map(int length) {
-        long m = mmap(length);
+        long addr = mmap(length);
 //        Logger.i(TAG, "Mapped memory of size " + length + " at " + addrHex(m));
-//  todo 验证是否可使用
-//   UnsafeHelper.allocateMemory(long bytes)
-//    UnsafeHelper.copyMemory(srcAddress, dstBuf, length);
-        return m;
+
+////        // 替代测试成功
+//        long addr1 = UnsafeHelper.mmap(length);
+//        byte[] bbs = UnsafeHelper.getData(addr, length);
+//        byte[] bbs1 = UnsafeHelper.getData(addr, length);
+//        Logger.d("------------map------------测试结果对比."
+//                + "\r\n\tnative memget 结果: " + Debug.hexdump(bbs, addr)
+//                + "\r\n\tUnsafe copy() 结果: " + Debug.hexdump(bbs1, addr1)
+//        );
+        return addr;
     }
+
 
     public static boolean unmap(long address, int length) {
 //        Logger.d(TAG, "Removing mapped memory of size " + length + " at " + addrHex(address));
         return munmap(address, length);
-        //是否可以通过  UnsafeHelper.freeMemory(long address);来释放
-        //https://cs.android.com/android/platform/superproject/+/master:libcore/ojluni/src/main/java/sun/nio/ch/Util.java
-        //static void erase(ByteBuffer bb) {
-        // 可以可用这个方法擦除 unsafe.setMemory(((DirectBuffer)bb).address(), bb.capacity(), (byte)0);
+        // 可使用如放方法替代
+//        return UnsafeHelper.unmap(address, length);
+//        return UnsafeHelper.munmap(address, length);
 
+//        //https://cs.android.com/android/platform/superproject/+/master:libcore/ojluni/src/main/java/sun/nio/ch/Util.java
+//        //static void erase(ByteBuffer bb) {
+//        // 可以可用这个方法擦除 unsafe.setMemory(((DirectBuffer)bb).address(), bb.capacity(), (byte)0);
+//
+//        // 貌似这个方法可以哎
+//          UnsafeHelper.setMemory(address, length, (byte) 0);
+//         return true;
     }
 
     public static void put(byte[] bytes, long dest) {
@@ -209,7 +222,7 @@ public final class EpicNative {
 //        Logger.d(TAG, "——————————get函数 memget 结果:" + Debug.hexdump(bytes, src));
 //
 //        // 可以用该值替代
-//        byte[] bbs = UnsafeHelper.getData(src, length);
+        byte[] bbs = UnsafeHelper.getData(src, length);
 //        Logger.d("——————[可替代]————get函数结果对比."
 ////                +"\r\n\tnative memget 结果: " + Debug.getString(bytes)
 ////                +"\r\n\tUnsafe copy() 结果:" + Debug.getString(bbs)
@@ -217,7 +230,7 @@ public final class EpicNative {
 //                        + "\r\n\tUnsafe copy() 结果: " + Debug.hexdump(bbs, src)
 //        );
 
-        return bytes;
+        return bbs;
     }
 
     public static boolean unprotect(long addr, long len) {
