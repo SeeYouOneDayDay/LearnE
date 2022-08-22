@@ -40,6 +40,7 @@ public class Arm64 extends ShellCode {
     @Override
     public byte[] createBridgeJump(long targetAddress, long targetEntry, long srcAddress, long structAddress) {
 
+        // 可以参考这部分把syscall 实现一下。
         byte[] instructions = new byte[]{
                 0x1f, 0x20, 0x03, (byte) 0xd5,         // nop
                 0x69, 0x02, 0x00, 0x58,                // ldr x9, source_method
