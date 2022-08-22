@@ -51,7 +51,7 @@ class Trampoline {
         boolean modified = segments.add(originMethod);
         if (!modified) {
             // Already hooked, ignore
-            Logger.d(TAG, originMethod + " is already hooked, return.");
+            Logger.d(TAG, "install() " + originMethod.toString() + " is already hooked, return.");
             return true;
         }
 
@@ -60,8 +60,12 @@ class Trampoline {
 
         int quickCompiledCodeSize = Epic.getQuickCompiledCodeSize(originMethod);
         int sizeOfDirectJump = shellCode.sizeOfDirectJump();
+        Logger.d(TAG, "install() " + originMethod.toString()
+                + "\r\n\tquickCompiledCodeSize: " + quickCompiledCodeSize
+                + "\r\n\tsizeOfDirectJump: " + sizeOfDirectJump
+        );
+
         if (quickCompiledCodeSize < sizeOfDirectJump) {
-            Logger.w(TAG, originMethod.toGenericString() + " quickCompiledCodeSize: " + quickCompiledCodeSize);
             originMethod.setEntryPointFromQuickCompiledCode(getTrampolinePc());
             return true;
         }

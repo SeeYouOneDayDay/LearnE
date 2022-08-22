@@ -9,12 +9,11 @@ import me.weishu.epic.art.EpicNative;
 import me.weishu.epic.art.method.ArtMethod;
 import utils.Debug;
 import utils.Logger;
-import utils.Unsafe;
+import utils.gs.UnsafeHelper;
 
 /**
  * Created by weishu on 17/11/6.
  */
-
 public class Case6 implements Case {
 
     private static final String TAG = "Case6";
@@ -24,8 +23,8 @@ public class Case6 implements Case {
         Object test = new Object();
         Logger.i(TAG, "原始对象object:" + test);
 
-        long testAddr = Unsafe.getObjectAddress(test);
-        Logger.i(TAG, "Unsafe获取[getObjectAddress]地址:" + testAddr + "---" + Debug.longHex(testAddr));
+        long testAddr = UnsafeHelper.toAddress(test);
+        Logger.i(TAG, "UnsafeHelper获取[toAddress]地址:" + testAddr + "---" + Debug.longHex(testAddr));
 //        Object ot1=Unsafe.getObject(testAddr);
 //        Logger.i(TAG, "Unsafe [getObject]地址获取对象:" + ot1);
 

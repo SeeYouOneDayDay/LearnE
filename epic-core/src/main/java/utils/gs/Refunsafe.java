@@ -1,4 +1,4 @@
-package utils;
+package utils.gs;
 
 import android.text.TextUtils;
 import android.util.Log;

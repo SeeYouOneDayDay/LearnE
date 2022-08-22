@@ -31,7 +31,6 @@ import me.weishu.epic.art.arch.Arm64;
 import me.weishu.epic.art.arch.ShellCode;
 import me.weishu.epic.art.arch.Thumb2;
 import me.weishu.epic.art.method.ArtMethod;
-import utils.Debug;
 import utils.Logger;
 import utils.Runtime;
 
@@ -102,6 +101,7 @@ public final class Epic {
             artOrigin.setAccessible(true);
         }
 
+        // @todo
         artOrigin.ensureResolved();
 
         long originEntry = artOrigin.getEntryPointFromQuickCompiledCode();
@@ -124,29 +124,34 @@ public final class Epic {
 //        Logger.i(TAG, "backup method entry :" + Debug.addrHex(backupMethod.getEntryPointFromQuickCompiledCode()));
 
         Logger.i(TAG, "backup method \r\n\t"
-                + "address:" +backupMethod.getAddress()
-                + "method getEntryPointFromQuickCompiledCode:" +backupMethod.getEntryPointFromQuickCompiledCode()
-                + "method EntryPointFromJni:" +backupMethod.getEntryPointFromJni()
+                + "address:" + backupMethod.getAddress()
+                + "method getEntryPointFromQuickCompiledCode:" + backupMethod.getEntryPointFromQuickCompiledCode()
+                + "method EntryPointFromJni:" + backupMethod.getEntryPointFromJni()
         );
         Logger.i(TAG, "artOrigin method \r\n\t"
-                + "address:" +artOrigin.getAddress()
-                + "method getEntryPointFromQuickCompiledCode:" +artOrigin.getEntryPointFromQuickCompiledCode()
-                + "method EntryPointFromJni:" +artOrigin.getEntryPointFromJni()
+                + "address:" + artOrigin.getAddress()
+                + "method getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
+                + "method EntryPointFromJni:" + artOrigin.getEntryPointFromJni()
         );
 
         ArtMethod backupList = getBackMethod(artOrigin);
 
 //        Logger.e("artOrigin.address:" + artOrigin.getAddress() + "-----backupMethod:" + backupMethod.getAddress());
-        Logger.i(TAG, "backupList method \r\n\t"
-                + "address:" +backupList.getAddress()
-                + "method getEntryPointFromQuickCompiledCode:" +backupList.getEntryPointFromQuickCompiledCode()
-                + "method EntryPointFromJni:" +backupList.getEntryPointFromJni()
-        );
+        Logger.e("backupList :" + backupList);
+
 
         if (backupList == null) {
             setBackMethod(artOrigin, backupMethod);
         }
-        Logger.e(TAG,"hookMethod()  backupMethodsMapping:" + backupMethodsMapping.toString());
+        if (backupList != null) {
+            Logger.i(TAG, "backupList method \r\n\t"
+                    + "address:" + backupList.getAddress()
+                    + "method getEntryPointFromQuickCompiledCode:" + backupList.getEntryPointFromQuickCompiledCode()
+                    + "method EntryPointFromJni:" + backupList.getEntryPointFromJni()
+            );
+        }
+
+        Logger.e(TAG, "hookMethod()  backupMethodsMapping:" + backupMethodsMapping.toString());
         final long key = originEntry;
         // 这部分是创建跳板
         final EntryLock lock = EntryLock.obtain(originEntry);

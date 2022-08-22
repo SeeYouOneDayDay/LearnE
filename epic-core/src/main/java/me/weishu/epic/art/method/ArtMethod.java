@@ -30,7 +30,7 @@ import java.util.Arrays;
 
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
-import utils.AA;
+import utils.gs.ArtHelper;
 import utils.Logger;
 import utils.NeverCalled;
 
@@ -90,10 +90,10 @@ public class ArtMethod {
         }
         this.method = method;
         if (address != -1) {
-            Logger.d(TAG,"ArtMethod the address is "+address);
+            Logger.d(TAG, "ArtMethod the address is " + address);
             this.address = address;
         } else {
-            Logger.d(TAG,"ArtMethod the address will get native");
+            Logger.d(TAG, "ArtMethod the address will get native");
             init();
         }
     }
@@ -102,12 +102,14 @@ public class ArtMethod {
 
         if (constructor != null) {
 //            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+constructor+"]=====")));
-            address = EpicNative.getMethodAddress(constructor);
-            Logger.d(TAG,"init() getMethodAddress constructor :"+constructor +"--->"+address+"____JAVA___"+ AA.getConstructorAddress(constructor));
+//            address = EpicNative.getMethodAddress(constructor);
+            address = ArtHelper.getConstructorAddress(constructor);
+            Logger.d(TAG, "init() getMethodAddress constructor :" + EpicNative.getMethodAddress(constructor) + "--->" + address + "____JAVA___" + address);
         } else {
 //            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+method+"]=====")));
-            address = EpicNative.getMethodAddress(method);
-            Logger.d(TAG,"init() getMethodAddress method: "+method+"----->"+address +"____JAVA___"+ AA.getMethodAddress(method));
+//            address = EpicNative.getMethodAddress(method);
+            address = ArtHelper.getMethodAddress(method);
+            Logger.d(TAG, "init() getMethodAddress method: " + method + "----->" + EpicNative.getMethodAddress(method) + "____JAVA___" + address);
         }
     }
 
@@ -406,13 +408,33 @@ public class ArtMethod {
             return;
         }
 
+//        try {
+//            invoke(null);
+//            Logger.d(TAG, "ensure resolved");
+//        } catch (Exception ignored) {
+//            // we should never make a successful call.
+//            Logger.e(ignored);
+//        } finally {
+//            Logger.d(TAG, "------");
+//            EpicNative.MakeInitializedClassVisibilyInitialized();
+//        }
+
+
         try {
-            invoke(null);
+//            invoke(null);
+            if (method != null) {
+                method.invoke(null);
+            }
+            if (constructor != null) {
+                constructor.newInstance((Object[])null);
+            }
             Logger.d(TAG, "ensure resolved");
         } catch (Exception ignored) {
             // we should never make a successful call.
+            Logger.e(ignored);
         } finally {
-            EpicNative.MakeInitializedClassVisibilyInitialized();
+            Logger.d(TAG, "------");
+//            EpicNative.MakeInitializedClassVisibilyInitialized();
         }
     }
 
@@ -468,11 +490,15 @@ public class ArtMethod {
         }
         final Method rule1 = XposedHelpers.findMethodExact(ArtMethod.class, "rule1");
         final Method rule2 = XposedHelpers.findMethodExact(ArtMethod.class, "rule2");
-        final long rule2Address = EpicNative.getMethodAddress(rule2);
-        final long rule1Address = EpicNative.getMethodAddress(rule1);
+        final long rule2Address = ArtHelper.getMethodAddress(rule2);
+        final long rule1Address = ArtHelper.getMethodAddress(rule1);
         final long size = Math.abs(rule2Address - rule1Address);
         artMethodSize = (int) size;
-        Logger.d(TAG, "art Method size: " + size);
+        Logger.d(TAG, "getArtMethodSize() art Method "
+                + "\r\n\tsize: " + size + "--JJ--" + Math.abs(EpicNative.getMethodAddress(rule2) - EpicNative.getMethodAddress(rule1))
+                + "\r\n\trule2Address: " + rule2Address + "--JJ--" + EpicNative.getMethodAddress(rule2)
+                + "\r\n\trule1Address: " + rule1Address + "--JJ--" + EpicNative.getMethodAddress(rule1)
+        );
         return artMethodSize;
     }
 

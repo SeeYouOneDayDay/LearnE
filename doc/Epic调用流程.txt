@@ -31,6 +31,13 @@ Epic调用流程
         backupMethodsMapping为键值对，键：方法地址，值:方法对应的artmethod
 
 4.1.1.1.8. 根据快速编译后的入口值(JIT编译后的入口值)，生成对应的跳板信息
+
+            调板实例化对象. 跳转地址: 快速编译后的入口值(JIT编译后的入口值)
+                    原始值: originalCode 根据跳转地址+跳转大小(这部分根据平台类型选择)----需要epic的方法memget(src, length)
+
+4.1.1.1.9. 跳板绑定Trampoline.init(ArtMethod)
+            hook过的放内存，防止重复存放-----Set<ArtMethod> segments
+            ----------
             这部分是如何替换还能运行的关键。
 
 

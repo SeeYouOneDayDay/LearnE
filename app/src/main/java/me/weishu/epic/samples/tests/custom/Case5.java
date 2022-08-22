@@ -10,26 +10,25 @@ import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
 import me.weishu.epic.art.method.ArtMethod;
 import me.weishu.epic.samples.MainApplication;
-import utils.AA;
+import utils.gs.ArtHelper;
 import utils.Logger;
-import utils.Unsafe;
+import utils.gs.UnsafeHelper;
 
 /**
  * Created by weishu on 17/11/6.
  */
-
 public class Case5 implements Case {
     @Override
     public void hook() {
-        Method m = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
-        Logger.d("Case5", "hook 在绑定之前 m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
+//        Method m = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
+//        Logger.d("Case5", "hook 在绑定之前 m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
 
         DexposedBridge.findAndHookMethod(TextView.class, "setPadding", int.class, int.class, int.class, int.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
                 if (param.thisObject != null) {
-                    Logger.i("Case5", "----this:" + Long.toHexString(Unsafe.getObjectAddress(param.thisObject)));
+                    Logger.i("Case5", "----this:" + Long.toHexString(UnsafeHelper.toAddress(param.thisObject)));
                 }
                 if (param.method != null) {
                     Logger.i("Case5", "----mehod:" + Long.toHexString(EpicNative.getMethodAddress((Method) param.method)));
@@ -39,7 +38,7 @@ public class Case5 implements Case {
                         Logger.i("Case5", "---param:" + arg);
                         if (arg != null) {
                             Logger.i("Case5", "---<" + arg.getClass() + "> : 0x" +
-                                    Long.toHexString(Unsafe.getObjectAddress(arg)) + ", value: " + arg);
+                                    Long.toHexString(UnsafeHelper.toAddress(arg)) + ", value: " + arg);
                         } else {
                             Logger.i("Case5", "----param: null");
                         }
@@ -57,7 +56,7 @@ public class Case5 implements Case {
         Method[] ms = TextView.class.getDeclaredMethods();
         for (Method _m : ms) {
             if (_m.getName().contains("setPadding"))
-                Logger.i("Case5", "hook 在绑定之后 m1:" +AA.getMethodAddress(_m) + "----->" + _m.toString());
+                Logger.i("Case5", "hook 在绑定之后 m1:" + ArtHelper.getMethodAddress(_m) + "----->" + _m.toString());
         }
     }
 

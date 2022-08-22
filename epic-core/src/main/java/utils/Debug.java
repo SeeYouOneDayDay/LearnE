@@ -114,4 +114,12 @@ public final class Debug {
             }
         }
     }
+
+    public static String getString(byte[] bytes) {
+        StringBuffer sb =new StringBuffer();
+        for (int i = 0; i < bytes.length; i++) {
+            sb.append(bytes[i]);
+        }
+        return sb.toString();
+    }
 }

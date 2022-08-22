@@ -1,4 +1,4 @@
-package utils;
+package utils.gs;
 
 /**
  *Class [sun.misc.Unsafe](http://www.docjar.com/docs/api/sun/misc/Unsafe.html) consists of `105` methods. There are, actually, few groups of important methods for manipulating with various entities. Here is some of them:
@@ -58,6 +58,9 @@ import android.os.Build;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import utils.Logger;
+import utils.Runtime;
+
 /**
  * @Copyright © 2022 sanbo Inc. All rights reserved.
  * @Description: Update unsafe
@@ -87,6 +90,7 @@ public class UnsafeHelper {
             unsafeClass = Refunsafe.findClass("sun.misc.Unsafe");
         }
         if (theUnsafeField() || THE_ONEField() || getUnsafeMethod() || getUnsafeByAbstractQueuedSynchronizer()) {
+            Logger.d("getUnsafe success!");
         }
     }
 
@@ -488,7 +492,7 @@ public class UnsafeHelper {
         Refunsafe.call(unsafeClass, "putOrderedLong", unsafeObj
                 , new Class[]{Object.class, long.class, long.class}, new Object[]{obj, offset, newValue});
     }
-    /******************************[getObject]************************/
+
     /**
      * Gets an <code>Object</code> field from the given object.
      *
@@ -833,22 +837,6 @@ public class UnsafeHelper {
     }
 
     /**
-     * 获取对象的内存地址
-     * @param obj
-     * @return
-     */
-    public static long toAddress(Object obj) {
-        Object[] array = new Object[]{obj};
-        d("toAddress() arrayIndexScale: " + arrayIndexScale(Object[].class) + "---64bit:" + is64Bit());
-        //返回数组中一个元素占用的大小
-        if (arrayIndexScale(Object[].class) == 8) {
-            return getLong(array, arrayBaseOffset(Object[].class));
-        } else {
-            return 0xffffffffL & getInt(array, arrayBaseOffset(Object[].class));
-        }
-    }
-
-    /**
      * 获取对应内存地址的对象
      * @param address
      * @return
@@ -856,7 +844,7 @@ public class UnsafeHelper {
     public static Object fromAddress(long address) {
         Object[] array = new Object[]{null};
         long baseOffset = arrayBaseOffset(Object[].class);
-        d("fromAddress() arrayIndexScale: " + arrayIndexScale(Object[].class) + "---64bit:" + is64Bit());
+//        d("fromAddress() arrayIndexScale: " + arrayIndexScale(Object[].class) + "---64bit:" + is64Bit());
         if (arrayIndexScale(Object[].class) == 8) {
             putLong(array, baseOffset, address);
         } else {
@@ -865,19 +853,100 @@ public class UnsafeHelper {
         return array[0];
     }
 
+    /**
+     * 获取对象的内存地址
+     * @param obj
+     * @return
+     */
+    public static long toAddress(Object obj) {
+        Object[] array = new Object[]{obj};
+//        d("toAddress() arrayIndexScale: " + arrayIndexScale(Object[].class) + "---64bit:" + is64Bit());
+        //返回数组中一个元素占用的大小
+        if (arrayIndexScale(Object[].class) == 8) {
+            return getLong(array, arrayBaseOffset(Object[].class));
+        } else {
+            return 0xffffffffL & getInt(array, arrayBaseOffset(Object[].class));
+        }
+    }
 
+
+    //https://github.com/tiann/epic/blob/master/library/src/main/java/com/taobao/android/dexposed/utility/Unsafe.java
+    public static long getObjectAddress(Object obj) {
+        try {
+            Object[] array = new Object[]{obj};
+            if (arrayIndexScale(Object[].class) == 8) {
+                return getLong(array, arrayBaseOffset(Object[].class));
+            } else {
+                return 0xffffffffL & getInt(array, arrayBaseOffset(Object[].class));
+            }
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    //https://github.com/tiann/epic/blob/master/library/src/main/java/com/taobao/android/dexposed/utility/Unsafe.java
+    // @TODO  USE BY Object getObject(long self, long address)
+
+    /**
+     * get Object from address, refer: http://mishadoff.com/blog/java-magic-part-4-sun-dot-misc-dot-unsafe/
+     * @param address the address of a object.
+     * @return
+     */
+    public static Object getObject(long address) {
+        Object[] array = new Object[]{null};
+        long baseOffset = arrayBaseOffset(Object[].class);
+        if (Runtime.is64Bit()) {
+            putLong(array, baseOffset, address);
+        } else {
+            putInt(array, baseOffset, (int) address);
+        }
+        return array[0];
+    }
+
+
+    // 可替代 memput(bytes, dest)
+    public static void setData(byte[] bytes, long dst) {
+        for (int i = 0; i < bytes.length; i++) {
+            MemoryHelper.pokeByte(dst, bytes[i]);
+            dst++;
+        }
+    }
+
+    //  memget(src, length)  可读取内存数据
+    public static byte[] getData(long srcAddress, int length) {
+        long dstBuf = UnsafeHelper.allocateMemory(length);
+        copyMemory(srcAddress, dstBuf, length);
+        byte[] dst = new byte[length];
+        for (int i = 0; i < length; ++i) {
+            byte srcByte = getByte(srcAddress++);
+            byte dstByte = getByte(dstBuf++);
+            if (srcByte != dstByte) {
+                e(String.format("UnsafeHelper copy Failed!  offset %d: src = '%c', dst = '%c'",
+                        i, srcByte, dstByte));
+            }
+            dst[i] = srcByte;
+        }
+//        UnsafeHelper.freeMemory(dstBuf);
+        return dst;
+    }
 
     /*****************************基础方法***********************/
 
     public static void d(String s) {
+        Logger.d(s);
     }
 
     public static void i(String s) {
+        Logger.i(s);
     }
 
     public static void e(String s) {
+        Logger.e(s);
     }
 
     public static void e(Throwable e) {
+        Logger.e(e);
     }
+
+
 }

@@ -16,15 +16,13 @@
 
 package me.weishu.epic.art;
 
-import static utils.Debug.addrHex;
-
 import java.lang.reflect.Member;
 
 import de.robv.android.xposed.XposedHelpers;
 import utils.Debug;
 import utils.DeviceCheck;
 import utils.Logger;
-import utils.Unsafe;
+import utils.gs.UnsafeHelper;
 
 
 public final class EpicNative {
@@ -58,7 +56,6 @@ public final class EpicNative {
 
     public static native boolean munprotect(long addr, long len);
 
-    public static native long getMethodAddress(Member method);
 
     public static native void MakeInitializedClassVisibilyInitialized(long self);
 
@@ -70,11 +67,13 @@ public final class EpicNative {
 
     private static native boolean isGetObjectAvailable();
 
+    public static native long getMethodAddress(Member method);
+
 
     public static Object getObject(long self, long address) {
         if (useUnsafe) {
             Logger.d(TAG, "使用Unsafe方式获取对象");
-            return Unsafe.getObject(address);
+            return UnsafeHelper.getObject(address);
         } else {
             Logger.d(TAG, "使用native方式获取对象");
             return getObjectNative(self, address);
@@ -160,6 +159,8 @@ public final class EpicNative {
         return getObject(nativePeer, address);
     }
 
+    //https://android.googlesource.com/platform/art/+/master/runtime/class_linker.cc#319
+    //void ClassLinker::MakeInitializedClassesVisiblyInitialized(Thread* self, bool wait)
     public static void MakeInitializedClassVisibilyInitialized() {
         final long nativePeer = XposedHelpers.getLongField(Thread.currentThread(), "nativePeer");
         MakeInitializedClassVisibilyInitialized(nativePeer);
@@ -168,24 +169,54 @@ public final class EpicNative {
     public static long map(int length) {
         long m = mmap(length);
 //        Logger.i(TAG, "Mapped memory of size " + length + " at " + addrHex(m));
+//  todo 验证是否可使用
+//   UnsafeHelper.allocateMemory(long bytes)
+//    UnsafeHelper.copyMemory(srcAddress, dstBuf, length);
         return m;
     }
 
     public static boolean unmap(long address, int length) {
 //        Logger.d(TAG, "Removing mapped memory of size " + length + " at " + addrHex(address));
         return munmap(address, length);
+        //是否可以通过  UnsafeHelper.freeMemory(long address);来释放
+        //https://cs.android.com/android/platform/superproject/+/master:libcore/ojluni/src/main/java/sun/nio/ch/Util.java
+        //static void erase(ByteBuffer bb) {
+        // 可以可用这个方法擦除 unsafe.setMemory(((DirectBuffer)bb).address(), bb.capacity(), (byte)0);
+
     }
 
     public static void put(byte[] bytes, long dest) {
 //        Logger.d(TAG, "put() Writing memory to: " + addrHex(dest));
 //        Logger.d(TAG, "put()  bytes: :" + Debug.hexdump(bytes, dest));
         memput(bytes, dest);
+        //可使用  UnsafeHelper.setData(bytes, dest);替代
+
+//        Logger.d("------------put------------测试.");
+//        UnsafeHelper.setData(bytes, dest);
+//
+//        byte[] b1 = memget(dest, bytes.length);
+//        // 可以用该值替代
+//        byte[] bbs2 = UnsafeHelper.getData(dest, bytes.length);
+//        Logger.d("------------put------------测试结果对比."
+//                        + "\r\n\tnative memget 结果: " + Debug.hexdump(b1, dest)
+//                        + "\r\n\tUnsafe copy() 结果: " + Debug.hexdump(bbs2, dest)
+//        );
     }
 
     public static byte[] get(long src, int length) {
 //        Logger.d(TAG, "get函数  Reading(length): " + length + " bytes from: " + src + "--->" + addrHex(src));
         byte[] bytes = memget(src, length);
-//        Logger.d(TAG, "get函数 memget 结果:" + Debug.hexdump(bytes, src));
+//        Logger.d(TAG, "——————————get函数 memget 结果:" + Debug.hexdump(bytes, src));
+//
+//        // 可以用该值替代
+//        byte[] bbs = UnsafeHelper.getData(src, length);
+//        Logger.d("——————[可替代]————get函数结果对比."
+////                +"\r\n\tnative memget 结果: " + Debug.getString(bytes)
+////                +"\r\n\tUnsafe copy() 结果:" + Debug.getString(bbs)
+//                        + "\r\n\tnative memget 结果: " + Debug.hexdump(bytes, src)
+//                        + "\r\n\tUnsafe copy() 结果: " + Debug.hexdump(bbs, src)
+//        );
+
         return bytes;
     }
 
@@ -197,6 +228,8 @@ public final class EpicNative {
     public static void copy(long src, long dst, int length) {
 //        Logger.d(TAG, "Copy " + length + " bytes form " + addrHex(src) + " to " + addrHex(dst));
         memcpy(src, dst, length);
+        // 可考虑替换
+//        MemoryHelper.memcpy(dst,src,length);
     }
 
 }
