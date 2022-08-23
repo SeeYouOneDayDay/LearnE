@@ -159,10 +159,16 @@ void init_entries(JNIEnv *env) {
         jit_compiler_handle_ = (jit_load_)(&generate_debug_info);
         LOGV("jit compile_method: %p", jit_compile_method_);
 
+        // 下面两个啥区别呀，木有搞定
+        // [dlopen libart.so]_ZN3art16ScopedSuspendAllC1EPKcb
+        // [dlopen libart.so]_ZN3art16ScopedSuspendAllD1Ev
+        // [dlopen libart.so]_ZN3art16ScopedSuspendAllC2EPKcb
+        // [dlopen libart.so]_ZN3art16ScopedSuspendAllD2Ev
         suspendAll = reinterpret_cast<void (*)(ScopedSuspendAll *, char *)>(dlsym_ex(handle,
                                                                                      "_ZN3art16ScopedSuspendAllC1EPKcb"));
         resumeAll = reinterpret_cast<void (*)(ScopedSuspendAll *)>(dlsym_ex(handle,
-                                                                            "_ZN3art16ScopedSuspendAllD1Ev"));
+                                                                            "_ZN3art16ScopedSuspendAllD1Ev"
+                                                                            ));
 
         if (api_level >= 30) {
             // Android R would not directly return ArtMethod address but an internal id
