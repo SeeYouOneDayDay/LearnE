@@ -28,7 +28,7 @@ public class MainApplication extends Application {
     public void onCreate() {
         super.onCreate();
         MinRefOneClass.unseal(this);
-        new Case5().hook();
-        new Case19().hook();
+//        new Case5().hook();
+//        new Case19().hook();
     }
 }

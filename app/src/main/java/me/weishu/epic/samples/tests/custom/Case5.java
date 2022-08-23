@@ -8,20 +8,21 @@ import de.robv.android.xposed.DexposedBridge;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
-import me.weishu.epic.art.method.ArtMethod;
 import me.weishu.epic.samples.MainApplication;
-import utils.gs.ArtHelper;
 import utils.Logger;
+import utils.gs.ArtHelper;
 import utils.gs.UnsafeHelper;
 
 /**
  * Created by weishu on 17/11/6.
  */
 public class Case5 implements Case {
+    private Method setPaddingInTextView = null;
+
     @Override
     public void hook() {
-//        Method m = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
-//        Logger.d("Case5", "hook 在绑定之前 m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
+        setPaddingInTextView = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
+        Logger.d("Case5", "hook 在绑定之前 :" + setPaddingInTextView.toString() + "----->" + ArtHelper.getMethodAddress(setPaddingInTextView));
 
         DexposedBridge.findAndHookMethod(TextView.class, "setPadding", int.class, int.class, int.class, int.class, new XC_MethodHook() {
             @Override
@@ -49,25 +50,21 @@ public class Case5 implements Case {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
-                Logger.i("Case5", "----after");
+                Logger.d("Case5", "--afterHookedMethod----:" + setPaddingInTextView.toString() + "----->" + ArtHelper.getMethodAddress(setPaddingInTextView));
             }
         });
 
-        Method[] ms = TextView.class.getDeclaredMethods();
-        for (Method _m : ms) {
-            if (_m.getName().contains("setPadding"))
-                Logger.i("Case5", "hook 在绑定之后 m1:" + ArtHelper.getMethodAddress(_m) + "----->" + _m.toString());
-        }
+//        Method[] ms = TextView.class.getDeclaredMethods();
+//        for (Method _m : ms) {
+//            if (_m.getName().contains("setPadding"))
+//                Logger.i("Case5", "hook 在绑定之后 m1:" + ArtHelper.getMethodAddress(_m) + "----->" + _m.toString());
+//        }
     }
-
-
 
 
     @Override
     public boolean validate(Object... args) {
-//public void setPadding(int left, int top, int right, int bottom) {
-        Method m = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
-        Logger.d("Case5", "执行前 m:" + m.toString() + "----->" + ArtMethod.of(m).getAddress());
+        Logger.d("Case5", "---validate--:" + setPaddingInTextView.toString() + "----->" + ArtHelper.getMethodAddress(setPaddingInTextView));
         TextView tv = new TextView(MainApplication.getAppContext());
         tv.setPadding(99, 99, 99, 99);
 

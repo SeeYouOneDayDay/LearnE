@@ -159,6 +159,7 @@ void init_entries(JNIEnv *env) {
         jit_compiler_handle_ = (jit_load_)(&generate_debug_info);
         LOGV("jit compile_method: %p", jit_compile_method_);
 
+        // elf打开搜索符号表 DynamicSymbols
         // 下面两个啥区别呀，木有搞定
         // [dlopen libart.so]_ZN3art16ScopedSuspendAllC1EPKcb
         // [dlopen libart.so]_ZN3art16ScopedSuspendAllD1Ev
