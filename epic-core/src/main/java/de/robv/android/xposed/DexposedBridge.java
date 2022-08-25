@@ -47,6 +47,7 @@ public final class DexposedBridge {
 
     static {
         try {
+            MinRef.unseal(AndroidAppHelper.currentApplication());
             if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
                 System.loadLibrary("epic");
             } else if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -54,9 +55,6 @@ public final class DexposedBridge {
             } else {
                 throw new RuntimeException("unsupported api level: " + Build.VERSION.SDK_INT);
             }
-            MinRef.unseal(AndroidAppHelper.currentApplication());
-            // // 可以简化
-//            HiddenApiBypass.unseal(AndroidAppHelper.currentApplication());
         } catch (Throwable e) {
             Logger.e(e);
         }

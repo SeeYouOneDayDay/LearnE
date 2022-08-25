@@ -426,12 +426,11 @@ public class ArtMethod {
                 method.setAccessible(true);
 
                 Class[] pars = method.getParameterTypes();
-                if (pars.length<1){
+                if (pars.length < 1) {
                     method.invoke(null);
-                }else{
-                    method.invoke(null,new Object[pars.length]);
+                } else {
+                    method.invoke(null, getFakeArgs(pars));
                 }
-
             }
             if (constructor != null) {
                 constructor.setAccessible(true);
@@ -446,14 +445,31 @@ public class ArtMethod {
             EpicNative.MakeInitializedClassVisibilyInitialized();
         }
     }
-    private static Object[] getFakeArgs(Method method) {
-        Class[] pars = method.getParameterTypes();
+
+    private static Object[] getFakeArgs(Class[] pars) {
         if (pars == null || pars.length == 0) {
-            return new Object[]{new Object()};
-        } else {
             return null;
+        } else {
+            Object[] obj = new Object[pars.length];
+            for (int i = 0; i < pars.length; i++) {
+                if (
+                        pars[i].isAssignableFrom(int.class) || pars[i].isAssignableFrom(Number.class)
+                                || pars[i].isAssignableFrom(long.class) || pars[i].isAssignableFrom(double.class)
+                                || pars[i].isAssignableFrom(short.class) || pars[i].isAssignableFrom(float.class)
+                ) {
+                    obj[i] = 0;
+                } else if (pars[i].isAssignableFrom(byte.class)) {
+                    obj[i] = (byte) 0;
+                } else if (pars[i].isAssignableFrom(char.class)) {
+                    obj[i] = (char) 0;
+                } else {
+                    obj[i] = null;
+                }
+            }
+            return obj;
         }
     }
+
     /**
      * The entry point of the quick compiled code.
      * @return the entry point.

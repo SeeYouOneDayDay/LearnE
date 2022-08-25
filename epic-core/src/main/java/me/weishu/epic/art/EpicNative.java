@@ -56,6 +56,7 @@ public final class EpicNative {
     public static native boolean munprotect(long addr, long len);
 
 
+    // can replace
     public static native void MakeInitializedClassVisibilyInitialized(long self);
 
     public static native boolean cacheflush(long addr, long len);
@@ -101,6 +102,8 @@ public final class EpicNative {
     public static native void resumeAll(long cookie);
 
     /**
+     * libcore/libart/src/main/java/dalvik/system/VMRuntime.java
+     *  public native void disableJitCompilation();
      * stop jit compiler in runtime.
      * Warning: Just for experiment Do not call this now!!!
      * @return cookie use by {@link #startJit(long)}
@@ -108,6 +111,8 @@ public final class EpicNative {
     public static native long stopJit();
 
     /**
+     * libcore/libart/src/main/java/dalvik/system/VMRuntime.java
+     *  public native void startJitCompilation();
      * start jit compiler stop by {@link #stopJit()}
      * Warning: Just for experiment Do not call this now!!!
      * @param cookie the cookie return by {@link #stopJit()}
@@ -130,10 +135,10 @@ public final class EpicNative {
 
 
     public static Object getObject(long self, long address) {
-        Logger.e(TAG, "getObject============"+useUnsafe
-                +"-------"
-                +"\r\n\tnative: "+getObjectNative(self, address)
-                +"\r\n\tplan2: "+ UnsafeHelper.fromAddress(address)
+        Logger.e(TAG, "getObject============" + useUnsafe
+                + "-------"
+                + "\r\n\tnative: " + getObjectNative(self, address)
+                + "\r\n\tplan2: " + UnsafeHelper.fromAddress(address)
         );
         if (useUnsafe) {
             Logger.d(TAG, "使用Unsafe方式获取对象");
@@ -145,6 +150,7 @@ public final class EpicNative {
             return getObjectNative(self, address);
         }
     }
+
     /**
      *  Thread
      *      private volatile long nativePeer;
@@ -167,6 +173,8 @@ public final class EpicNative {
 
     //https://android.googlesource.com/platform/art/+/master/runtime/class_linker.cc#319
     //void ClassLinker::MakeInitializedClassesVisiblyInitialized(Thread* self, bool wait)
+    //can replace
+    //in Artmethod.ensureResolved
     public static void MakeInitializedClassVisibilyInitialized() {
         final long nativePeer = XposedHelpers.getLongField(Thread.currentThread(), "nativePeer");
         MakeInitializedClassVisibilyInitialized(nativePeer);
