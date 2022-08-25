@@ -29,61 +29,23 @@ public class Refunsafe {
         return null;
     }
 
-    public static Constructor getConstructor(String className, Class<?>... types) {
-        return getConstructor(findClass(className), types);
-    }
-
-    public static Constructor getConstructor(Class<?> clazz, Class<?>... types) {
-        if (clazz == null) {
-            return null;
-        }
-        Constructor constructor = null;
-        try {
-            constructor = clazz.getDeclaredConstructor(types);
-        } catch (Throwable e) {
-//            e(e);
-        }
-        try {
-            if (constructor == null) {
-                constructor = clazz.getConstructor(types);
-            }
-        } catch (Throwable e) {
-//            e(e);
-        }
-        if (constructor != null) {
-            //版本23以后
-            //我们不能使用 constructor.setAccessible(true);谷歌会限制
-            // AccessibleObject.setAccessible(new AccessibleObject[]{constructor}, true);
-            // 或者修改标签： Field override = AccessibleObject.class.getDeclaredField(
-            //                        Build.VERSION.SDK_INT == Build.VERSION_CODES.M ? "flag" : "override");
-            constructor.setAccessible(true);
-        }
-        return constructor;
-    }
-
-    public static Method getMethod(String className, String methodName, Class<?>... types) {
-
-        return getMethod(findClass(className), methodName, types);
-
-    }
 
     public static Method getMethod(Class<?> clazz, String methodName, Class<?>... types) {
         if (clazz == null || TextUtils.isEmpty(methodName)) {
             return null;
         }
         Method method = null;
-        try {
-            method = clazz.getDeclaredMethod(methodName, types);
-        } catch (Throwable e) {
-        }
-        if (method == null) {
+        while (clazz != Object.class) {
             try {
-                method = clazz.getMethod(methodName, types);
+                method = clazz.getDeclaredMethod(methodName, types);
+
+                if (method != null) {
+                    method.setAccessible(true);
+                    return method;
+                }
             } catch (Throwable e) {
             }
-        }
-        if (method != null) {
-            method.setAccessible(true);
+            clazz = clazz.getSuperclass();
         }
         return method;
     }
@@ -99,10 +61,6 @@ public class Refunsafe {
         }
         return null;
     }
-
-//    public static Object invokeStatic(Method method, Object... args) {
-//        return invoke(null, method, args);
-//    }
 
     public static Object invoke(Object obj, Method method, Object... args) {
         if (method == null) {
@@ -125,24 +83,19 @@ public class Refunsafe {
     }
 
     public static Field getField(Class<?> clazz, String fieldName) {
-        try {
-            Field addr = clazz.getDeclaredField(fieldName);
-            if (addr != null) {
-                addr.setAccessible(true);
-                return addr;
-            }
-        } catch (Throwable e) {
+        Field field = null;
+        while (clazz != null && clazz != Object.class) {
             try {
-                Field addr = clazz.getField(fieldName);
-                if (addr != null) {
-                    addr.setAccessible(true);
-                    return addr;
+                field = clazz.getDeclaredField(fieldName);
+                if (field != null) {
+                    field.setAccessible(true);
+                    return field;
                 }
-            } catch (Throwable ex) {
-                e(ex);
+            } catch (Exception e) {
             }
+            clazz = clazz.getSuperclass();
         }
-        return null;
+        return field;
     }
 
     public static Object getFieldValue(String className, String fieldName) {
