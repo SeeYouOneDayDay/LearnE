@@ -1,7 +1,7 @@
 package uts;
 
-
 import android.content.Context;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -9,115 +9,45 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-
-/**
- * 28 x86 crash
- *
- */
-
 /**
  * 最小剪辑版黑灰名单避免方案.支持JDK 7、8编译的环境.
  * 用法使用一个接口方案: MinRefUtils.unseal(Context context)
  */
-public final class MinRefOneClass {
-    private static final String TAG = "sanbo." + MinRefOneClass.class.getSimpleName();
-
-    private transient int accessFlags; //
-    private transient int classFlags; //
-    private transient ClassLoader classLoader; //
-    private transient int classSize; //
-    private transient int clinitThreadId; //
-    private transient Class<?> componentType; //
-    private transient short copiedMethodsOffset; //
-    private transient Object dexCache; //
-    private transient int dexClassDefIndex; //
-    private volatile transient int dexTypeIndex;//
-    // 方法原型：private transient ClassExt extData;
-    private transient Object extData; //
-    private transient long iFields; //
-    private transient Object[] ifTable; //
-    private transient long methods; //
-    private transient String name;//
-    private transient int numReferenceInstanceFields; //
-    private transient int numReferenceStaticFields; //
-    private transient int objectSize; //
-    private transient int objectSizeAllocFastPath; //
-    private transient int primitiveType; //
-    private transient int referenceInstanceOffsets; //
-    private transient long sFields; //
-    private transient int status; //
-    private transient Class<?> superClass; //
-    private transient short virtualMethodsOffset;
-    private transient Object vtable;
-
-    private static void fun1() {
-    }
-
-    private static void fun2() {
-    }
-
-    private static Object invoke(Object... args) {
-        throw new IllegalStateException("Failed to invoke the method");
-    }
-
-    private MinRefOneClass(Object... args) {
-        throw new IllegalStateException("Failed to new a instance");
-    }
-
+public final class MinRef {
+    private static final String TAG = "sanbo." + MinRef.class.getSimpleName();
     // 对应 Executable.artMethod 等价于 JNI artmethod 指针
-    private static long artMethodOffset;
+    private static long methodOffset;
     // 方法数对应，与JNI Class uint64_t methods_;
     private static long methodsOffset;
     // art方法的大小
     private static long artMethodSize;
     //art方法偏差--@todo check
     private static long artMethodBias;
-    private static Object unsafeObj;
-    private static Class unsafeClass;
 
     static {
         try {
-            if (unsafeClass == null) {
-                unsafeClass = Class.forName("sun.misc.Unsafe");
-            }
-            //private static final Unsafe theUnsafe = THE_ONE;
-            unsafeObj = getFieldValue(unsafeClass, "theUnsafe", null);
-            if (unsafeObj == null) {
-                //private static final Unsafe THE_ONE = new Unsafe();
-                unsafeObj = getFieldValue(unsafeClass, "THE_ONE", null);
-            }
-            if (unsafeObj == null) {
-                unsafeObj = call(unsafeClass, "getUnsafe", null, null, null);
-            }
-        } catch (Throwable e) {
-            e(e);
-        }
-        try {
-            artMethodOffset = (long) call(unsafeClass, "objectFieldOffset", unsafeObj
-                    , new Class[]{Field.class}, new Object[]{getField(Method.class.getSuperclass(), "artMethod")});
-//            methodOffset = Unsafe.objectFieldOffset(Method.class.getSuperclass().getDeclaredField("artMethod"));
-//            methodsOffset = Unsafe.objectFieldOffset(MinRef.class.getDeclaredField("methods"));
-            methodsOffset = (long) call(unsafeClass, "objectFieldOffset", unsafeObj
-                    , new Class[]{Field.class}, new Object[]{getField(MinRefOneClass.class, "methods")});
-            Method mA = MinRefOneClass.class.getDeclaredMethod("fun1");
-            Method mB = MinRefOneClass.class.getDeclaredMethod("fun2");
+            // methodOffset = Unsafe.objectFieldOffset(Executable.class.getDeclaredField("artMethod"));
+            methodOffset = Unsafe.objectFieldOffset(Method.class.getSuperclass().getDeclaredField("artMethod"));
+            methodsOffset = Unsafe.objectFieldOffset(HideCall.class.getDeclaredField("methods"));
+            Method mA = HideCall.class.getDeclaredMethod("a");
+            Method mB = HideCall.class.getDeclaredMethod("b");
             mA.setAccessible(true);
             mB.setAccessible(true);
             long aAddr = getMethodAddress(mA);
             long bAddr = getMethodAddress(mB);
-//            long aMethods = Unsafe.getLong(MinRef.class, methodsOffset);
-            long aMethods = (long) call(unsafeClass, "getLong", unsafeObj
-                    , new Class[]{Object.class, long.class}, new Object[]{MinRefOneClass.class, methodsOffset});
+            long aMethods = Unsafe.getLong(HideCall.class, methodsOffset);
             artMethodSize = bAddr - aAddr;
             artMethodBias = aAddr - aMethods - artMethodSize;
 
             i("获取所有参数结束,详情如下: "
-                    + "\r\n    methodOffset (Executable artMethod):              " + artMethodOffset
+                    + "\r\n    methodOffset (Executable artMethod):              " + methodOffset
                     + "\r\n    methodsOffset (Class  long methods):              " + methodsOffset
                     + "\r\n    artMethodSize (addressA - addressB):              " + artMethodSize
+                    + "\r\n    aMethods                           :              " + aMethods
                     + "\r\n    artMethodBias (addressA-aMethods-artMethodSize):  " + artMethodBias
             );
-            if (android.os.Build.VERSION.SDK_INT > 27) {
+
+            if (Build.VERSION.SDK_INT > 27) {
                 exemptAll();
             }
         } catch (Throwable e) {
@@ -160,24 +90,18 @@ public final class MinRefOneClass {
         }
         //实际上如果只是为了简单调用这个函数，完全可以直接随便找一个 Method 并用 Unsafe 去设置它的 artMethod，然后直接调用 Method.invoke 即可。
         // 因为从 Method.invoke 的 native 代码可以看到，调用过程仅使用 Method 的 artMethod 成员。
-        Method stub = MinRefOneClass.class.getDeclaredMethod("invoke", Object[].class);
+        Method stub = HideCall.class.getDeclaredMethod("invoke", Object[].class);
         stub.setAccessible(true);
-//        long methods = Unsafe.getLong(clazz, methodsOffset);
-        long methods = (long) call(unsafeClass, "getLong", unsafeObj
-                , new Class[]{Object.class, long.class}, new Object[]{clazz, methodsOffset});
+        long methods = Unsafe.getLong(clazz, methodsOffset);
         if (methods == 0) {
             throw new NoSuchMethodException("(invoke)Cannot find matching method");
         }
-//        int numMethods = Unsafe.getInt(methods);
-        int numMethods = (int) call(unsafeClass, "getInt", unsafeObj
-                , new Class[]{long.class}, new Object[]{methods});
+        int numMethods = Unsafe.getInt(methods);
         d("[invoke] " + clazz.getName() + " " + methodName + "()  has " + numMethods + " methods");
         for (int i = 0; i < numMethods; i++) {
             //第I个元素  base + i * size  + 偏差值？
             long method = methods + i * artMethodSize + artMethodBias;
-//            Unsafe.putLong(stub, methodOffset, method);
-            call(unsafeClass, "putLong", unsafeObj
-                    , new Class[]{Object.class, long.class, long.class}, new Object[]{stub, artMethodOffset, method});
+            Unsafe.putLong(stub, methodOffset, method);
 //            //////////Just for long begin////////////
 //            StringBuffer sb = new StringBuffer();
 //            sb.append("[invoke获取方法]  ").append(clazz.getName()).append(".").append(stub.getName());
@@ -216,7 +140,7 @@ public final class MinRefOneClass {
     }
 
     public static int unseal(Context context) {
-        if (android.os.Build.VERSION.SDK_INT < 28) {
+        if (Build.VERSION.SDK_INT < 28) {
             // Below Android P, ignore
             return 0;
         }
@@ -228,9 +152,9 @@ public final class MinRefOneClass {
         return -1;
     }
 
-    static boolean isInit = false;
+    private static boolean isInit = false;
 
-    static boolean exemptAll() {
+    private static boolean exemptAll() {
         if (!isInit) {
             isInit = setHiddenApiExemptions(new String[]{
                     "L"
@@ -241,6 +165,152 @@ public final class MinRefOneClass {
     }
 
 
+    /**
+     * 内部类仅用于内部替换
+     */
+    static final class HideCall {
+        private transient int accessFlags; //
+        private transient int classFlags; //
+        private transient ClassLoader classLoader; //
+        private transient int classSize; //
+        private transient int clinitThreadId; //
+        private transient Class<?> componentType; //
+        private transient short copiedMethodsOffset; //
+        private transient Object dexCache; //
+        private transient int dexClassDefIndex; //
+        private volatile transient int dexTypeIndex;//
+        // 方法原型：private transient ClassExt extData;
+        private transient Object extData; //
+        private transient long iFields; //
+        private transient Object[] ifTable; //
+        private transient long methods; //
+        private transient String name;//
+        private transient int numReferenceInstanceFields; //
+        private transient int numReferenceStaticFields; //
+        private transient int objectSize; //
+        private transient int objectSizeAllocFastPath; //
+        private transient int primitiveType; //
+        private transient int referenceInstanceOffsets; //
+        private transient long sFields; //
+        private transient int status; //
+        private transient Class<?> superClass; //
+        private transient short virtualMethodsOffset; //
+        private transient Object vtable;//
+
+        private static void a() {
+        }
+
+        private static void b() {
+        }
+
+        private static Object invoke(Object... args) {
+            throw new IllegalStateException("Failed to invoke the method");
+        }
+
+        private HideCall(Object... args) {
+            throw new IllegalStateException("Failed to new a instance");
+        }
+    }
+
+    static class Unsafe {
+
+        private static Object unsafeObj;
+        private static Class unsafeClass;
+
+        static {
+            try {
+                if (unsafeClass == null) {
+                    unsafeClass = Class.forName("sun.misc.Unsafe");
+                }
+                //private static final Unsafe theUnsafe = THE_ONE;
+                unsafeObj = getFieldValue(unsafeClass, "theUnsafe", null);
+                if (unsafeObj == null) {
+                    //private static final Unsafe THE_ONE = new Unsafe();
+                    unsafeObj = getFieldValue(unsafeClass, "THE_ONE", null);
+                }
+                if (unsafeObj == null) {
+                    unsafeObj = call(unsafeClass, "getUnsafe", null, null, null);
+                }
+            } catch (Throwable e) {
+                e(e);
+            }
+        }
+
+        public static long objectFieldOffset(Field field) {
+            Object result = call(unsafeClass, "objectFieldOffset", unsafeObj, new Class[]{Field.class}, new Object[]{field});
+            return result != null && (result.getClass() == Long.class || result.getClass() == long.class) ? ((Long) result).longValue() : 0L;
+        }
+
+        public static long getLong(Object obj, long offset) {
+            Object result = call(unsafeClass, "getLongVolatile", unsafeObj, new Class[]{Object.class, long.class}, new Object[]{obj, offset});
+            if (result == null) {
+                result = call(unsafeClass, "getLong", unsafeObj, new Class[]{Object.class, long.class}, new Object[]{obj, offset});
+            }
+            return result != null && (result.getClass() == Long.class || result.getClass() == long.class) ? ((Long) result).longValue() : 0L;
+        }
+
+
+        public static void putLong(Object obj, long offset, long newValue) {
+            try {
+                Method method = getMethod(unsafeClass, "putLongVolatile", Object.class, long.class, long.class);
+                if (method == null) {
+                    method = getMethod(unsafeClass, "putLong", Object.class, long.class, long.class);
+                }
+                if (method != null) {
+                    method.setAccessible(true);
+                    method.invoke(unsafeObj, obj, offset, newValue);
+                }
+            } catch (Throwable e) {
+                e(e);
+            }
+        }
+
+        public static int getInt(long offset) {
+            Object result = call(unsafeClass, "getInt", unsafeObj, new Class[]{long.class}, new Object[]{offset});
+            return result != null && (result.getClass() == Integer.class || result.getClass() == int.class) ? ((Integer) result).intValue() : 0;
+        }
+
+
+        public static int arrayIndexScale(Class clazz) {
+            Object result = call(unsafeClass, "arrayIndexScale", unsafeObj, new Class[]{Class.class}, new Object[]{clazz});
+            if (result == null) {
+                if (Build.VERSION.SDK_INT > 20) {
+                    result = call(unsafeClass, "getArrayIndexScaleForComponentType", unsafeObj, new Class[]{Class.class}, new Object[]{clazz});
+                } else {
+                    // 4.x
+                    result = call(unsafeClass, "arrayIndexScale0", unsafeObj, new Class[]{Class.class}, new Object[]{clazz});
+                }
+            }
+            return result != null && (result.getClass() == Integer.class || result.getClass() == int.class) ? ((Integer) result).intValue() : 0;
+        }
+
+        public static int arrayBaseOffset(Class clazz) {
+            Object result = call(unsafeClass, "arrayBaseOffset", unsafeObj, new Class[]{Class.class}, new Object[]{clazz});
+            if (result == null) {
+                result = call(unsafeClass, "getArrayBaseOffsetForComponentType", unsafeObj, new Class[]{Class.class}, new Object[]{clazz});
+            }
+            return result != null && (result.getClass() == Integer.class || result.getClass() == int.class) ? ((Integer) result).intValue() : 0;
+        }
+
+        public static int getInt(Object obj, long offset) {
+            Object result = call(unsafeClass, "getIntVolatile", unsafeObj, new Class[]{Object.class, long.class}, new Object[]{obj, offset});
+            if (result == null) {
+                result = call(unsafeClass, "getInt", unsafeObj, new Class[]{Object.class, long.class}, new Object[]{obj, offset});
+            }
+            return result != null && (result.getClass() == Integer.class || result.getClass() == int.class) ? ((Integer) result).intValue() : 0;
+        }
+
+
+        public static long toAddress(Object obj) {
+            Object[] array = new Object[]{obj};
+            //返回数组中一个元素占用的大小
+            if (arrayIndexScale(Object[].class) == 8) {
+                return getLong(array, arrayBaseOffset(Object[].class));
+            } else {
+                return 0xffffffffL & getInt(array, arrayBaseOffset(Object[].class));
+            }
+        }
+    }
 
     public static long getMethodAddress(Method method) {
         try {
@@ -251,26 +321,11 @@ public final class MinRefOneClass {
             if (mirrorMethod.getClass().equals(Long.class)) {
                 return (Long) mirrorMethod;
             }
-            return toAddress(mirrorMethod);
+            return Unsafe.toAddress(mirrorMethod);
         } catch (Throwable e) {
             e(e);
         }
         return 0L;
-    }
-
-    public static long toAddress(Object obj) {
-        Object[] array = new Object[]{obj};
-        int arrayIndexScaleObject = (int) call(unsafeClass, "arrayIndexScale", null, new Class[]{Class.class}, new Object[]{Object[].class});
-        int arrayBaseOffsetObject = (int) call(unsafeClass, "arrayBaseOffset", null
-                , new Class[]{Class.class}, new Object[]{Object[].class});
-        if (arrayIndexScaleObject == 8) {
-            return (long) call(unsafeClass, "getLong", null
-                    , new Class[]{Object.class, long.class}, new Object[]{array, arrayBaseOffsetObject});
-        } else {
-            int x = (int) call(unsafeClass, "getInt", null
-                    , new Class[]{Object.class, long.class}, new Object[]{array, arrayBaseOffsetObject});
-            return 0xffffffffL & x;
-        }
     }
 
     public static Object getFieldValue(Class<?> clazz, String fieldName, Object instance) {
@@ -306,7 +361,8 @@ public final class MinRefOneClass {
         return null;
     }
 
-    public static Object call(Class<?> clazz, String methodName, Object receiver, Class[] types, Object[] params) {
+    public static Object call(Class<?> clazz, String methodName, Object receiver, Class[]
+            types, Object[] params) {
         if (clazz == null || TextUtils.isEmpty(methodName)) {
             return null;
         }
@@ -322,6 +378,7 @@ public final class MinRefOneClass {
                     return method.invoke(receiver, params);
                 }
             }
+
         } catch (Throwable throwable) {
             e(throwable);
         }
@@ -349,23 +406,23 @@ public final class MinRefOneClass {
         return method;
     }
 
-    static void v(String s) {
+    private static void v(String s) {
         Log.println(Log.VERBOSE, TAG, s);
     }
 
-    static void d(String s) {
+    private static void d(String s) {
         Log.println(Log.DEBUG, TAG, s);
     }
 
-    static void i(String s) {
+    private static void i(String s) {
         Log.println(Log.INFO, TAG, s);
     }
 
-    static void e(String s) {
+    private static void e(String s) {
         Log.println(Log.ERROR, TAG, s);
     }
 
-    static void e(Throwable e) {
+    private static void e(Throwable e) {
         Log.println(Log.ERROR, TAG, Log.getStackTraceString(e));
     }
 

@@ -1,7 +1,5 @@
 package me.weishu.epic.samples.tests.custom;
 
-import android.util.Log;
-
 import de.robv.android.xposed.DexposedBridge;
 import de.robv.android.xposed.XC_MethodHook;
 import utils.Logger;
@@ -25,8 +23,8 @@ public class Case19 implements Case {
         DexposedBridge.findAndHookMethod(staticA.class, "add", int.class, int.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Logger.d(TAG,"beforeHookedMethod add:" +param.args[0]+"----"+param.args[1]);
-                param.args[0]=100;
+                Logger.d(TAG, "beforeHookedMethod add:" + param.args[0] + "----" + param.args[1]);
+                param.args[0] = 100;
 //                super.beforeHookedMethod(param);
             }
 
@@ -40,7 +38,7 @@ public class Case19 implements Case {
 
     @Override
     public boolean validate(Object... args) {
-        Logger.d(TAG,"add:" + staticA.add(0,100));
+        Logger.d(TAG, "add:" + staticA.add(0, 100));
 
         return true;
     }

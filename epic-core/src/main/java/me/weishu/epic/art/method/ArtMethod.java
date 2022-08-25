@@ -423,9 +423,18 @@ public class ArtMethod {
         try {
 //            invoke(null);
             if (method != null) {
-                method.invoke(null);
+                method.setAccessible(true);
+
+                Class[] pars = method.getParameterTypes();
+                if (pars.length<1){
+                    method.invoke(null);
+                }else{
+                    method.invoke(null,new Object[pars.length]);
+                }
+
             }
             if (constructor != null) {
+                constructor.setAccessible(true);
                 constructor.newInstance((Object[]) null);
             }
             Logger.d(TAG, "ensure resolved");
@@ -437,7 +446,14 @@ public class ArtMethod {
             EpicNative.MakeInitializedClassVisibilyInitialized();
         }
     }
-
+    private static Object[] getFakeArgs(Method method) {
+        Class[] pars = method.getParameterTypes();
+        if (pars == null || pars.length == 0) {
+            return new Object[]{new Object()};
+        } else {
+            return null;
+        }
+    }
     /**
      * The entry point of the quick compiled code.
      * @return the entry point.

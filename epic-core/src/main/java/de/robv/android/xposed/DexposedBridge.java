@@ -40,7 +40,7 @@ import me.weishu.epic.art.Epic;
 import me.weishu.epic.art.method.ArtMethod;
 import utils.Logger;
 import utils.Runtime;
-import uts.MinRefOneClass;
+import uts.MinRef;
 
 
 public final class DexposedBridge {
@@ -54,7 +54,7 @@ public final class DexposedBridge {
             } else {
                 throw new RuntimeException("unsupported api level: " + Build.VERSION.SDK_INT);
             }
-            MinRefOneClass.unseal(AndroidAppHelper.currentApplication());
+            MinRef.unseal(AndroidAppHelper.currentApplication());
             // // 可以简化
 //            HiddenApiBypass.unseal(AndroidAppHelper.currentApplication());
         } catch (Throwable e) {

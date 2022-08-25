@@ -5,7 +5,7 @@ import android.content.Context;
 
 import me.weishu.epic.samples.tests.custom.Case19;
 import me.weishu.epic.samples.tests.custom.Case5;
-import uts.MinRefOneClass;
+import uts.MinRef;
 
 /**
  * Created by weishu on 17/10/31.
@@ -27,7 +27,7 @@ public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        MinRefOneClass.unseal(this);
+        MinRef.unseal(this);
 //        new Case5().hook();
 //        new Case19().hook();
     }
