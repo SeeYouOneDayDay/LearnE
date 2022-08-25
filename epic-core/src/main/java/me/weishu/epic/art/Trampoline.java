@@ -61,17 +61,23 @@ class Trampoline {
             return true;
         }
 
+        // 创建跳转 + 原来的信息 组成 byte[]
         byte[] page = create();
+        // 申请对应大小的内存(mmap)，通过地址将byte[] 放进到对应地址(memput)
         EpicNative.put(page, getTrampolineAddress());
 
+        // 获取原方法的偏移后的字符，并解析其大小
         int quickCompiledCodeSize = Epic.getQuickCompiledCodeSize(originMethod);
+        // 获取跳转的大小
         int sizeOfDirectJump = shellCode.sizeOfDirectJump();
         Logger.d(TAG, "install() " + originMethod.toString()
                 + "\r\n\tquickCompiledCodeSize: " + quickCompiledCodeSize
                 + "\r\n\tsizeOfDirectJump: " + sizeOfDirectJump
         );
 
+        // 如大小不对
         if (quickCompiledCodeSize < sizeOfDirectJump) {
+            Logger.d(TAG, "install() 跳转汇编大小<直跳汇编大小,即将重新设置EntryPointFromQuickCompiledCode。 size:" + getTrampolinePc());
             originMethod.setEntryPointFromQuickCompiledCode(getTrampolinePc());
             return true;
         }
@@ -80,7 +86,6 @@ class Trampoline {
         // source.setEntryPointFromQuickCompiledCode(script.getTrampolinePc());
         //绑定让其执行
         return activate();
-//        return true;
     }
 
     private long getTrampolineAddress() {
@@ -122,6 +127,11 @@ class Trampoline {
         return count;
     }
 
+    //组成数据：
+    // 1. 大小： BridgeJump桥接大小*拦截个数  + DirectJump直跳大小*2
+    // 2. 组成：
+    //      方法跳转段汇编拼接。（若多个，则此处多个）
+    //      原方法的跳转汇编地址
     private byte[] create() {
         Logger.d(TAG, "create trampoline." + segments);
         byte[] mainPage = new byte[getSize()];
@@ -130,11 +140,13 @@ class Trampoline {
         for (ArtMethod method : segments) {
             byte[] bridgeJump = createTrampoline(method);
             int length = bridgeJump.length;
+            //        arraycopy(Object src,  int  srcPos,  Object dest, int destPos, int length);
             System.arraycopy(bridgeJump, 0, mainPage, offset, length);
             offset += length;
         }
 
         byte[] callOriginal = shellCode.createCallOrigin(jumpToAddress, originalCode);
+//        arraycopy(Object src,  int  srcPos,  Object dest, int destPos, int length);
         System.arraycopy(callOriginal, 0, mainPage, offset, callOriginal.length);
 
         return mainPage;
@@ -143,7 +155,16 @@ class Trampoline {
     private boolean activate() {
         long pc = getTrampolinePc();
 //        Logger.d(TAG, "Writing direct jump entry " + Debug.addrHex(pc) + " to origin entry: 0x" + Debug.addrHex(jumpToAddress));
-        Logger.d(TAG, "Writing direct jump entry " + pc + " to origin entry  jumpToAddress: " + jumpToAddress);
+        Logger.d(TAG, "Trampoline  activate()---即将EpicNative.activateNative "
+                + "\r\ngetTrampolinePc(pc):" + pc
+                + "\r\njumpToAddress:" + jumpToAddress
+                + "\r\nsizeOfDirectJump:" + shellCode.sizeOfDirectJump()
+                + "\r\nsizeOfBridgeJump:" + shellCode.sizeOfBridgeJump()
+                + "\r\ncreateDirectJump:" + shellCode.createDirectJump(pc)
+        );
+
+        // native逻辑，暂停JIT编译，分配一个可读写的空间，将跳板信息拷贝进去，重新开始JIT编译
+        //stop_jit
         synchronized (Trampoline.class) {
             return EpicNative.activateNative(jumpToAddress, pc, shellCode.sizeOfDirectJump(),
                     shellCode.sizeOfBridgeJump(), shellCode.createDirectJump(pc));
@@ -156,6 +177,9 @@ class Trampoline {
         super.finalize();
     }
 
+    // 根据方法 绑定对应回调的函数
+    //  malloc 4个指针大小
+    // 根据 目标地址/目标EntryPointFromQuickCompiledCode/原地址/分配的四个指针地址(malloc(length))
     private byte[] createTrampoline(ArtMethod source) {
         Logger.d("inside Trampoline.createTrampoline. addr(source):" + source.getAddress());
         final Epic.MethodInfo methodInfo = Epic.getMethodInfo(source.getAddress());

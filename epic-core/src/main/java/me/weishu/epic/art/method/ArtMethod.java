@@ -128,7 +128,7 @@ public class ArtMethod {
 
     public ArtMethod backup() {
         try {
-            // 考虑版本兼容，黑白名单越界貌似可以用，哈哈哈
+            // 考虑版本兼容
             // Before Oreo, it is: java.lang.reflect.AbstractMethod
             // After Oreo, it is: java.lang.reflect.Executable
             Class<?> abstractMethodClass = Method.class.getSuperclass();
@@ -161,6 +161,13 @@ public class ArtMethod {
                 // 交换地址
                 artMethod.setEntryPointFromQuickCompiledCode(getEntryPointFromQuickCompiledCode());
                 artMethod.setEntryPointFromJni(getEntryPointFromJni());
+
+                Logger.i("ErDog", "ArtMethod backup() <23 artMethod"
+                        +"\r\n\taddr:" + artMethod.getAddress()
+                        + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromQuickCompiledCode()
+                        + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromJni()
+                );
+
             } else {
                 Constructor<Method> constructor = Method.class.getDeclaredConstructor();
                 // we can't use constructor.setAccessible(true); because Google does not like it
@@ -202,6 +209,13 @@ public class ArtMethod {
             artMethod.makePrivate();
             artMethod.setAccessible(true);
             artMethod.origin = this; // save origin method.
+
+
+            Logger.i("ErDog", "ArtMethod backup() >=23 artMethod"
+                    +"\r\n\taddr:" + artMethod.getAddress()
+                    + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromQuickCompiledCode()
+                    + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromJni()
+            );
             return artMethod;
 
         } catch (Throwable e) {

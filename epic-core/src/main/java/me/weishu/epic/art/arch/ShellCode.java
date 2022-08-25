@@ -29,6 +29,7 @@ public abstract class ShellCode {
 
     public abstract long toMem(long pc);
 
+    // 原函数跳板代码生成
     public byte[] createCallOrigin(long originalAddress, byte[] originalPrologue) {
         byte[] callOriginal = new byte[sizeOfCallOrigin()];
         System.arraycopy(originalPrologue, 0, callOriginal, 0, sizeOfDirectJump());

@@ -97,7 +97,7 @@ public final class Epic {
         methodInfo.method = artOrigin;
 
         originSigs.put(artOrigin.getAddress(), methodInfo);
-        Logger.d("Epic hookMethod() setto MEMORY addr[" + artOrigin.getAddress() + "] originSigs:" + originSigs);
+        Logger.d(TAG, "Epic hookMethod() setto MEMORY addr[" + artOrigin.getAddress() + "] originSigs:" + originSigs);
         if (!artOrigin.isAccessible()) {
             artOrigin.setAccessible(true);
         }
@@ -106,6 +106,7 @@ public final class Epic {
         artOrigin.ensureResolved();
 
         long originEntry = artOrigin.getEntryPointFromQuickCompiledCode();
+
         if (originEntry == ArtMethod.getQuickToInterpreterBridge()) {
             Logger.i(TAG, "this method is not compiled, compile it now. current entry: 0x" + Long.toHexString(originEntry));
             boolean ret = artOrigin.compile();
@@ -119,6 +120,12 @@ public final class Epic {
             }
         }
 
+
+        Logger.i("ErDog", "Epic hookMethod() artOrigin"
+                + "\r\n\taddr:" + artOrigin.getAddress()
+                + "\r\n\tEntryPointFromQuickCompiledCode:" + originEntry
+                + "\r\n\tEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromJni()
+        );
         ArtMethod backupMethod = artOrigin.backup();
 
 //        Logger.i(TAG, "backup method address:" + Debug.addrHex(backupMethod.getAddress()));
@@ -181,7 +188,7 @@ public final class Epic {
             Trampoline trampoline = scripts.get(key);
 
 
-            Logger.i(TAG, "============before trampoline install======="
+            Logger.i("ErDog", "============before trampoline install======="
                     + "\r\n\tartOrigin method"
                     + "\r\n\t\taddress:" + artOrigin.getAddress()
                     + "\r\n\t\tmethod originEntry getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
@@ -196,7 +203,8 @@ public final class Epic {
             boolean ret = trampoline.install(artOrigin);
             Logger.i(TAG, "hook Method result:" + ret);
 
-            Logger.i(TAG, "============after trampoline install======="
+
+            Logger.i("ErDog", "============after trampoline install======="
                     + "\r\n\tartOrigin method"
                     + "\r\n\t\taddress:" + artOrigin.getAddress()
                     + "\r\n\t\tmethod originEntry getEntryPointFromQuickCompiledCode:" + artOrigin.getEntryPointFromQuickCompiledCode()
@@ -257,8 +265,10 @@ public final class Epic {
         return originSigs.get(address);
     }
 
+    // 1. 生成JIT编译后的地址。EntryPointFromQuickCompiledCode
+    // 2. 生成原始地址：将上面地址-4（之前申请了4个单位的跳的信息）
+    // 3. 从原始地址获取4个单位的信息。---原地址内容
     public static int getQuickCompiledCodeSize(ArtMethod method) {
-
         long entryPoint = ShellCode.toMem(method.getEntryPointFromQuickCompiledCode());
         long sizeInfo1 = entryPoint - 4;
         byte[] bytes = EpicNative.get(sizeInfo1, 4);

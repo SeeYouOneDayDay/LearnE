@@ -230,13 +230,13 @@ public final class EpicNative {
 //        );
     }
 
-    public static byte[] get(long src, int length) {
+    public static byte[] get(long addr, int length) {
 //        Logger.d(TAG, "get函数  Reading(length): " + length + " bytes from: " + src + "--->" + addrHex(src));
-        byte[] bytes = memget(src, length);
+        byte[] bytes = memget(addr, length);
 //        Logger.d(TAG, "——————————get函数 memget 结果:" + Debug.hexdump(bytes, src));
 //
 //        // 可以用该值替代
-        byte[] bbs = UnsafeHelper.getData(src, length);
+        byte[] bbs = UnsafeHelper.getData(addr, length);
 //        Logger.d("——————[可替代]————get函数结果对比."
 ////                +"\r\n\tnative memget 结果: " + Debug.getString(bytes)
 ////                +"\r\n\tUnsafe copy() 结果:" + Debug.getString(bbs)

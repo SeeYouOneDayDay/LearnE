@@ -34,10 +34,10 @@
 //#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, "epic.native", __VA_ARGS__))
 
 #define TAG_NAME    "epic.native"
-#define LOGV(...)  //((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
-#define LOGD(...)  //((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
-#define LOGI(...)  //((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
-#define LOGE(...)  //((void)__android_log_print(ANDROID_LOG_ERROR, TAG_NAME, __VA_ARGS__))
+#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, TAG_NAME, __VA_ARGS__))
+#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG_NAME, __VA_ARGS__))
+#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, TAG_NAME, __VA_ARGS__))
+#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, TAG_NAME, __VA_ARGS__))
 
 
 #define JNIHOOK_CLASS "me/weishu/epic/art/EpicNative"
@@ -267,6 +267,7 @@ void epic_disableMovingGc(JNIEnv *env, jclass, jint api) {
     DisableMovingGc(heap);
 }
 
+// 申请一段可读取的对其的空间
 jboolean epic_munprotect(JNIEnv *env, jclass, jlong addr, jlong len) {
     //sysconf - 在运行时获取配置信息。 这是个查看缓存内存页面大小
     // 有一个获取物理内存的小的方案：通过将 sysconf (_SC_PHYS_PAGES) 和 sysconf (_SC_PAGESIZE) 相乘，来确定物理内存的总量 (以字节为单位) 可以返回一个值
@@ -369,7 +370,7 @@ jlong epic_mmap(JNIEnv *env, jclass, jint length) {
     void *space = mmap(0, (size_t) length, PROT_READ | PROT_WRITE | PROT_EXEC,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (space == MAP_FAILED) {
-        LOGV("mmap failed: %d", errMakeInitializedClassVisibilyInitializedno);
+        LOGV("mmap failed: %d", errno);
         return 0;
     }
     return (jlong) space;
@@ -409,8 +410,7 @@ jboolean epic_isGetObjectAvaliable(JNIEnv *, jclass) {
 
 
 //activateNative(long jumpToAddress, long pc, long sizeOfTargetJump, long sizeOfBridgeJump, byte[] code)
-jboolean
-epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong sizeOfDirectJump,
+jboolean epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong sizeOfDirectJump,
               jlong sizeOfBridgeJump, jbyteArray code) {
 
     // fetch the array, we can not call this when thread suspend(may lead deadlock)
@@ -439,12 +439,12 @@ epic_activate(JNIEnv *env, jclass jclazz, jlong jumpToAddress, jlong pc, jlong s
     // 修改对应地址的权限
     jboolean result = epic_munprotect(env, jclazz, jumpToAddress, sizeOfDirectJump);
     if (result) {
-        // 修改地址权限
+        // 拷贝跳转地址到另一个空间上
         unsigned char *destPnt = (unsigned char *) jumpToAddress;
         for (int i = 0; i < length; ++i) {
             destPnt[i] = (unsigned char) srcPnt[i];
         }
-        // 清除缓存
+        // 回收原来的内容。因为内容已经更新到 destPnt
         jboolean ret = epic_cacheflush(env, jclazz, pc, sizeOfBridgeJump);
         if (!ret) {
             LOGV("cache flush failed!!");
