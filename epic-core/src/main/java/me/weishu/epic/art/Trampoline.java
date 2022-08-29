@@ -63,11 +63,18 @@ class Trampoline {
 
         // 创建跳转 + 原来的信息 组成 byte[]
         byte[] page = create();
+        Logger.i(TAG, "install()  create over. " + originMethod.toString()
+                + "\r\n\tpage size: " + page.length
+        );
         // 申请对应大小的内存(mmap)，通过地址将byte[] 放进到对应地址(memput)
         EpicNative.put(page, getTrampolineAddress());
 
         // 获取原方法的偏移后的字符，并解析其大小
         int quickCompiledCodeSize = Epic.getQuickCompiledCodeSize(originMethod);
+
+        Logger.i(TAG, "install()  . " + originMethod.toString()
+                + "\r\n\t quickCompiledCodeSize: " + quickCompiledCodeSize
+        );
         // 获取跳转的大小
         int sizeOfDirectJump = shellCode.sizeOfDirectJump();
         Logger.d(TAG, "install() " + originMethod.toString()
@@ -77,7 +84,8 @@ class Trampoline {
 
         // 如大小不对
         if (quickCompiledCodeSize < sizeOfDirectJump) {
-            Logger.d(TAG, "install() 跳转汇编大小<直跳汇编大小,即将重新设置EntryPointFromQuickCompiledCode。 size:" + getTrampolinePc());
+            Logger.d(TAG, "install() 跳转汇编大小<直跳汇编大小,即将重新设置EntryPointFromQuickCompiledCode。" +
+                    "\r\n\tgetTrampolinePc size:" + getTrampolinePc());
             originMethod.setEntryPointFromQuickCompiledCode(getTrampolinePc());
             return true;
         }
@@ -92,6 +100,10 @@ class Trampoline {
         if (getSize() != trampolineSize) {
             alloc();
         }
+        Logger.i(TAG, "getTrampolineAddress()  . "
+                + "\r\n\t size: " + getSize()
+                + "\r\n\t trampolineSize: " + trampolineSize
+        );
         return trampolineAddress;
     }
 
@@ -100,6 +112,10 @@ class Trampoline {
     }
 
     private void alloc() {
+        Logger.i(TAG, "alloc()  . "
+                + "\r\n\t trampolineAddress: " + trampolineAddress
+
+        );
         if (trampolineAddress != 0) {
             free();
         }
@@ -109,13 +125,24 @@ class Trampoline {
     }
 
     private void free() {
+        Logger.i(TAG, "free()  . "
+                + "\r\n\t trampolineAddress: " + trampolineAddress
+        );
         if (trampolineAddress != 0) {
+            Logger.i(TAG, "free()  will EpicNative.unmap. "
+                    + "\r\n\t trampolineAddress: " + trampolineAddress
+                    + "\r\n\t trampolineSize: " + trampolineSize
+            );
             EpicNative.unmap(trampolineAddress, trampolineSize);
             trampolineAddress = 0;
             trampolineSize = 0;
         }
 
         if (active) {
+            Logger.i(TAG, "free()  active. will EpicNative.put. "
+                    + "\r\n\t originalCode: " + originalCode
+                    + "\r\n\t jumpToAddress: " + jumpToAddress
+            );
             EpicNative.put(originalCode, jumpToAddress);
         }
     }
