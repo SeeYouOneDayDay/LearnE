@@ -1,58 +1,5 @@
 package utils.gs;
 
-/**
- *Class [sun.misc.Unsafe](http://www.docjar.com/docs/api/sun/misc/Unsafe.html) consists of `105` methods. There are, actually, few groups of important methods for manipulating with various entities. Here is some of them:
- *
- * - Info
- *     . Just returns some low-level memory information.
- *     - `addressSize`
- *     - `pageSize`
- *
- * - Objects
- *     . Provides methods for object and its fields manipulation.
- *
- *     - `allocateInstance`
- *     - `objectFieldOffset`
- *
- * - Classes
- *
- *     . Provides methods for classes and static fields manipulation.
- *
- *     - `staticFieldOffset`
- *     - `defineClass`
- *     - `defineAnonymousClass`
- *     - `ensureClassInitialized`
- *
- * - Arrays
- *
- *     . Arrays manipulation.
- *
- *     - `arrayBaseOffset`
- *     - `arrayIndexScale`
- *
- * - Synchronization
- *
- *     . Low level primitives for synchronization.
- *
- *     - `monitorEnter`
- *     - `tryMonitorEnter`
- *     - `monitorExit`
- *     - `compareAndSwapInt`
- *     - `putOrderedInt`
- *
- * - Memory
- *
- *     . Direct memory access methods.
- *
- *     - `allocateMemory`
- *     - `copyMemory`
- *     - `freeMemory`
- *     - `getAddress`
- *     - `getInt`
- *     - `putInt`
- * @return
- */
-
 import android.os.Build;
 
 import java.lang.reflect.Field;

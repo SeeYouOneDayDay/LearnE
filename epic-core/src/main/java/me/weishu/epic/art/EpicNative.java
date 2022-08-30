@@ -21,7 +21,6 @@ import java.lang.reflect.Member;
 import de.robv.android.xposed.XposedHelpers;
 import utils.DeviceCheck;
 import utils.Logger;
-import utils.gs.Aho;
 import utils.gs.UnsafeHelper;
 
 
@@ -237,7 +236,7 @@ public final class EpicNative {
 //        Logger.d(TAG, "——————————get函数 memget 结果:" + Debug.hexdump(bytes, src));
 //
 //        // 可以用该值替代
-        byte[] bbs = Aho.memget(addr, length);
+//        byte[] bbs = Aho.memget(addr, length);
 //        Logger.d("——————[可替代]————get函数结果对比."
 ////                +"\r\n\tnative memget 结果: " + Debug.getString(bytes)
 ////                +"\r\n\tUnsafe copy() 结果:" + Debug.getString(bbs)
@@ -245,7 +244,7 @@ public final class EpicNative {
 //                        + "\r\n\tUnsafe copy() 结果: " + Debug.hexdump(bbs, src)
 //        );
 
-        return bbs;
+        return bytes;
     }
 
     public static boolean unprotect(long addr, long len) {

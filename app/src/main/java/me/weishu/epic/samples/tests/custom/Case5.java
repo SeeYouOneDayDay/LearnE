@@ -10,7 +10,6 @@ import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
 import me.weishu.epic.samples.MainApplication;
 import utils.Logger;
-import utils.gs.ArtHelper;
 import utils.gs.UnsafeHelper;
 
 /**
@@ -22,7 +21,8 @@ public class Case5 implements Case {
     @Override
     public void hook() {
         setPaddingInTextView = XposedHelpers.findMethodExact(TextView.class, "setPadding", int.class, int.class, int.class, int.class);
-        Logger.d("Case5", "hook 在绑定之前 :" + setPaddingInTextView.toString() + "----->" + ArtHelper.getMethodAddress(setPaddingInTextView));
+        Logger.d("Case5", "hook 在绑定之前 :" + setPaddingInTextView.toString()
+                + "----->" +EpicNative.getMethodAddress(setPaddingInTextView));
 
         DexposedBridge.findAndHookMethod(TextView.class, "setPadding", int.class, int.class, int.class, int.class, new XC_MethodHook() {
             @Override
@@ -50,7 +50,8 @@ public class Case5 implements Case {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
-                Logger.d("Case5", "--afterHookedMethod----:" + setPaddingInTextView.toString() + "----->" + ArtHelper.getMethodAddress(setPaddingInTextView));
+                Logger.d("Case5", "--afterHookedMethod----:" + setPaddingInTextView.toString()
+                        + "----->" + EpicNative.getMethodAddress(setPaddingInTextView));
             }
         });
 
@@ -64,7 +65,8 @@ public class Case5 implements Case {
 
     @Override
     public boolean validate(Object... args) {
-        Logger.d("Case5", "---validate--:" + setPaddingInTextView.toString() + "----->" + ArtHelper.getMethodAddress(setPaddingInTextView));
+        Logger.d("Case5", "---validate--:" + setPaddingInTextView.toString() + "----->"
+                + EpicNative.getMethodAddress(setPaddingInTextView));
         TextView tv = new TextView(MainApplication.getAppContext());
         tv.setPadding(99, 99, 99, 99);
 

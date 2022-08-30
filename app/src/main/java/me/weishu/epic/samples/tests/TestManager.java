@@ -42,7 +42,6 @@ import me.weishu.epic.samples.tests.custom.Case11_SuspendAll;
 import me.weishu.epic.samples.tests.custom.Case12_MultiCallback;
 import me.weishu.epic.samples.tests.custom.Case13_FastNative;
 import me.weishu.epic.samples.tests.custom.Case14_GC;
-import me.weishu.epic.samples.tests.custom.Case15_StopJit;
 import me.weishu.epic.samples.tests.custom.Case16_SameEntry;
 import me.weishu.epic.samples.tests.custom.Case17_SameMethod;
 import me.weishu.epic.samples.tests.custom.Case18_returnConst;
@@ -183,7 +182,7 @@ public class TestManager {
             CaseManager.getInstance().getCase(Case13_FastNative.class);
         }
 
-         CaseManager.getInstance().getCase(Case16_SameEntry.class);
+        CaseManager.getInstance().getCase(Case16_SameEntry.class);
         CaseManager.getInstance().getCase(Case17_SameMethod.class);
         CaseManager.getInstance().getCase(Case18_returnConst.class);
         CaseManager.getInstance().getCase(Case19.class);

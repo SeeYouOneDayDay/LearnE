@@ -386,6 +386,8 @@ void epic_munmap(JNIEnv *env, jclass, jlong addr, jint length) {
 
 //这个单纯申请空间。
 jlong epic_malloc(JNIEnv *env, jclass, jint size) {
+    LOGV("inside malloc. sizeof(void *) :%d  size: %p", sizeof(void *), size);
+
     size_t length = sizeof(void *) * size;
     void *ptr = malloc(length);
     LOGV("malloc :%d of memory at: %p", (int) length, ptr);

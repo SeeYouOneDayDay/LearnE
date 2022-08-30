@@ -22,10 +22,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import me.weishu.epic.art.EpicNative;
-import utils.Debug;
 import utils.Logger;
 import utils.Runtime;
-import utils.gs.MemoryHelper;
 
 /**
  * The Offset of field in an ArtMethod
@@ -54,13 +52,12 @@ public class Offset {
     }
 
     private enum BitWidth {
-        DWORD(4),
-        QWORD(8);
+        FOUR(4),
+        EIGHT(8);
 
         BitWidth(int width) {
             this.width = width;
         }
-
         int width;
     }
 
@@ -88,8 +85,8 @@ public class Offset {
         long address = base + offset.offset;
         byte[] bytes = EpicNative.get(address, offset.length.width);
 
-//        Logger.e(TAG, "read offsetLen: " + offset.length.width + "-----DWORD:" + BitWidth.DWORD.width);
-        if (offset.length == BitWidth.DWORD) {
+        Logger.e(TAG, "read offsetLen: " + offset.length.width + "-----DWORD:" + BitWidth.FOUR.width);
+        if (offset.length == BitWidth.FOUR) {
 //            Logger.i("-------AAAAA------");
             return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
         } else {
@@ -99,7 +96,6 @@ public class Offset {
     }
 
 
-
     public static void write(long base, Offset offset, long value) {
 
         long address = base + offset.offset;
@@ -107,7 +103,7 @@ public class Offset {
         byte[] bytes;
 //        Logger.i(TAG, "write()  offsetLen:" + offset.length.width + " ,DWORD: " + BitWidth.DWORD.width);
 
-        if (offset.length == BitWidth.DWORD) {
+        if (offset.length == BitWidth.FOUR) {
             if (value > 0xFFFFFFFFL) {
 //                Logger.e(TAG, "write()  overflow may occur will exception ");
                 throw new IllegalStateException("overflow may occur");
@@ -161,13 +157,13 @@ public class Offset {
 
         ART_JNI_ENTRY_OFFSET = new Offset();
 
-        ART_ACCESS_FLAG_OFFSET.setLength(Offset.BitWidth.DWORD);
+        ART_ACCESS_FLAG_OFFSET.setLength(Offset.BitWidth.FOUR);
 
         final int apiLevel = Build.VERSION.SDK_INT;
 
         if (Runtime.is64Bit()) {
-            ART_QUICK_CODE_OFFSET.setLength(Offset.BitWidth.QWORD);
-            ART_JNI_ENTRY_OFFSET.setLength(BitWidth.QWORD);
+            ART_QUICK_CODE_OFFSET.setLength(BitWidth.EIGHT);
+            ART_JNI_ENTRY_OFFSET.setLength(BitWidth.EIGHT);
             switch (apiLevel) {
                 case Build.VERSION_CODES.S:
                     // source: https://android.googlesource.com/platform/art/+/refs/heads/android12-release/runtime/art_method.h
@@ -206,9 +202,7 @@ public class Offset {
                     break;
                 case Build.VERSION_CODES.LOLLIPOP:
                     ART_QUICK_CODE_OFFSET.setOffset(40);
-                    ART_QUICK_CODE_OFFSET.setLength(BitWidth.QWORD);
                     ART_JNI_ENTRY_OFFSET.setOffset(32);
-                    ART_JNI_ENTRY_OFFSET.setLength(BitWidth.QWORD);
                     ART_ACCESS_FLAG_OFFSET.setOffset(56);
                     break;
                 case Build.VERSION_CODES.KITKAT:
@@ -219,8 +213,8 @@ public class Offset {
                     throw new RuntimeException("API LEVEL: " + apiLevel + " is not supported now : (");
             }
         } else {
-            ART_QUICK_CODE_OFFSET.setLength(Offset.BitWidth.DWORD);
-            ART_JNI_ENTRY_OFFSET.setLength(BitWidth.DWORD);
+            ART_QUICK_CODE_OFFSET.setLength(Offset.BitWidth.FOUR);
+            ART_JNI_ENTRY_OFFSET.setLength(BitWidth.FOUR);
             switch (apiLevel) {
                 case Build.VERSION_CODES.S:
                     ART_QUICK_CODE_OFFSET.setOffset(20);
@@ -258,9 +252,9 @@ public class Offset {
                     break;
                 case Build.VERSION_CODES.LOLLIPOP:
                     ART_QUICK_CODE_OFFSET.setOffset(40);
-                    ART_QUICK_CODE_OFFSET.setLength(BitWidth.QWORD);
+                    ART_QUICK_CODE_OFFSET.setLength(BitWidth.EIGHT);
                     ART_JNI_ENTRY_OFFSET.setOffset(32);
-                    ART_JNI_ENTRY_OFFSET.setLength(BitWidth.QWORD);
+                    ART_JNI_ENTRY_OFFSET.setLength(BitWidth.EIGHT);
                     ART_ACCESS_FLAG_OFFSET.setOffset(56);
                     break;
                 case Build.VERSION_CODES.KITKAT:

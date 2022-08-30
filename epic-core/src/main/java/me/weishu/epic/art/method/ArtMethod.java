@@ -32,7 +32,6 @@ import de.robv.android.xposed.XposedHelpers;
 import me.weishu.epic.art.EpicNative;
 import utils.Logger;
 import utils.NeverCalled;
-import utils.gs.ArtHelper;
 
 /**
  * Object stands for a Java Method, may be a constructor or a method.
@@ -102,13 +101,13 @@ public class ArtMethod {
 
         if (constructor != null) {
 //            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+constructor+"]=====")));
-//            address = EpicNative.getMethodAddress(constructor);
-            address = ArtHelper.getConstructorAddress(constructor);
+            address = EpicNative.getMethodAddress(constructor);
+//            address = ArtHelper.getConstructorAddress(constructor);
             Logger.d(TAG, "init() getMethodAddress constructor :" + EpicNative.getMethodAddress(constructor) + "--->" + address + "____JAVA___" + address);
         } else {
 //            Logger.d(TAG,Log.getStackTraceString(new Exception("=======ArtMethod["+method+"]=====")));
-//            address = EpicNative.getMethodAddress(method);
-            address = ArtHelper.getMethodAddress(method);
+            address = EpicNative.getMethodAddress(method);
+//            address = ArtHelper.getMethodAddress(method);
             Logger.d(TAG, "init() getMethodAddress method: " + method + "----->" + EpicNative.getMethodAddress(method) + "____JAVA___" + address);
         }
     }
@@ -163,7 +162,7 @@ public class ArtMethod {
                 artMethod.setEntryPointFromJni(getEntryPointFromJni());
 
                 Logger.i("ErDog", "ArtMethod backup() <23 artMethod"
-                        +"\r\n\taddr:" + artMethod.getAddress()
+                        + "\r\n\taddr:" + artMethod.getAddress()
                         + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromQuickCompiledCode()
                         + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromJni()
                 );
@@ -212,7 +211,7 @@ public class ArtMethod {
 
 
             Logger.i("ErDog", "ArtMethod backup() >=23 artMethod"
-                    +"\r\n\taddr:" + artMethod.getAddress()
+                    + "\r\n\taddr:" + artMethod.getAddress()
                     + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromQuickCompiledCode()
                     + "\r\n\tEntryPointFromQuickCompiledCode:" + artMethod.getEntryPointFromJni()
             );
@@ -536,14 +535,14 @@ public class ArtMethod {
         }
         final Method rule1 = XposedHelpers.findMethodExact(ArtMethod.class, "rule1");
         final Method rule2 = XposedHelpers.findMethodExact(ArtMethod.class, "rule2");
-        final long rule2Address = ArtHelper.getMethodAddress(rule2);
-        final long rule1Address = ArtHelper.getMethodAddress(rule1);
+        final long rule2Address = EpicNative.getMethodAddress(rule2);
+        final long rule1Address = EpicNative.getMethodAddress(rule1);
         final long size = Math.abs(rule2Address - rule1Address);
         artMethodSize = (int) size;
         Logger.d(TAG, "getArtMethodSize() art Method "
-                + "\r\n\tsize: " + size + "--JJ--" + Math.abs(EpicNative.getMethodAddress(rule2) - EpicNative.getMethodAddress(rule1))
-                + "\r\n\trule2Address: " + rule2Address + "--JJ--" + EpicNative.getMethodAddress(rule2)
-                + "\r\n\trule1Address: " + rule1Address + "--JJ--" + EpicNative.getMethodAddress(rule1)
+                + "\r\n\trule1Address: " + EpicNative.getMethodAddress(rule1)
+                + "\r\n\trule2Address: " + EpicNative.getMethodAddress(rule2)
+                + "\r\n\tartMethodSize: " + artMethodSize
         );
         return artMethodSize;
     }

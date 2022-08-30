@@ -3,7 +3,6 @@ package me.weishu.epic.samples;
 import android.app.Application;
 import android.content.Context;
 
-import utils.gs.demo.OffHeapArray;
 import uts.MinRef;
 
 /**
@@ -29,23 +28,7 @@ public class MainApplication extends Application {
         MinRef.unseal(this);
 //        new Case5().hook();
 //        new Case19().hook();
-        demo();
+
     }
 
-    private void demo() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 5; i++) {
-                    OffHeapArray.cases();
-                    System.gc();
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
-    }
 }
