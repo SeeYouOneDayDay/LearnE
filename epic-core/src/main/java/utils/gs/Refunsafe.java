@@ -40,7 +40,9 @@ public class Refunsafe {
                 method = clazz.getDeclaredMethod(methodName, types);
 
                 if (method != null) {
-                    method.setAccessible(true);
+                    if (!method.isAccessible()) {
+                        method.setAccessible(true);
+                    }
                     return method;
                 }
             } catch (Throwable e) {
@@ -83,12 +85,17 @@ public class Refunsafe {
     }
 
     public static Field getField(Class<?> clazz, String fieldName) {
+        if (clazz == null || TextUtils.isEmpty(fieldName)) {
+            return null;
+        }
         Field field = null;
-        while (clazz != null && clazz != Object.class) {
+        while (clazz != Object.class) {
             try {
                 field = clazz.getDeclaredField(fieldName);
                 if (field != null) {
-                    field.setAccessible(true);
+                    if (!field.isAccessible()) {
+                        field.setAccessible(true);
+                    }
                     return field;
                 }
             } catch (Exception e) {

@@ -20,7 +20,7 @@ package utils;
 import java.lang.reflect.Method;
 
 import me.weishu.epic.art.method.ArtMethod;
-import utils.Logger;
+import utils.gs.Refunsafe;
 
 public class Runtime {
 
@@ -33,7 +33,10 @@ public class Runtime {
 
     static {
         try {
-            g64 = (boolean) Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("is64Bit").invoke(Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("getRuntime").invoke(null));
+            g64 = (boolean) Refunsafe.call("dalvik.system.VMRuntime", "is64Bit"
+                    , Refunsafe.call("dalvik.system.VMRuntime", "getRuntime", null));
+//            g64 = (boolean) Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("is64Bit")
+//                    .invoke(Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("getRuntime").invoke(null));
         } catch (Exception e) {
             Logger.e(TAG, "get is64Bit failed, default not 64bit!", e);
             g64 = false;
