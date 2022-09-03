@@ -8,16 +8,6 @@ android {
         versionCode 3
         versionName "1.4.5"
     }
-//    testOptions {
-//        unitTests.all {
-//            testLogging {
-//                exceptionFormat 'full'
-//                showStackTraces true
-//                showCauses true
-//                events "passed", "skipped", "failed", "standardOut", "standardError"
-//            }
-//        }
-//    }
 
     dexOptions {
         preDexLibraries false
@@ -35,6 +25,15 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
         resultsDir = "${project.buildDir}/ut_results"
+
+//        unitTests.all {
+//            testLogging {
+//                exceptionFormat 'full'
+//                showStackTraces true
+//                showCauses true
+//                events "passed", "skipped", "failed", "standardOut", "standardError"
+//            }
+//        }
     }
     lintOptions {
         checkReleaseBuilds true

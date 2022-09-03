@@ -12,7 +12,7 @@ Epic 被 [VirtualXposed](https://github.com/android-hacker/VirtualXposed) 以及
 
 在你项目的 build.gradle 中添加如下依赖（jitpack 仓库):
 
-```groovy
+``` groovy
 dependencies {
     compile 'com.github.tiann:epic:0.11.2'
 }
@@ -25,7 +25,7 @@ dependencies {
 
 1. 监控 Java 线程的创建和销毁：
 
-```java
+``` java
 class ThreadMethodHook extends XC_MethodHook{
     @Override
     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -64,7 +64,7 @@ DexposedBridge.findAndHookMethod(Thread.class, "run", new ThreadMethodHook());
 
 2. 监控 dex 文件的加载：
 
-```java
+``` java
 DexposedBridge.findAndHookMethod(DexFile.class, "loadDex", String.class, String.class, int.class, new XC_MethodHook() {
     @Override
     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
