@@ -72,12 +72,9 @@ class Trampoline {
         // 获取原方法的偏移后的字符，并解析其大小
         int quickCompiledCodeSize = Epic.getQuickCompiledCodeSize(originMethod);
 
-        Logger.i(TAG, "install()  . " + originMethod.toString()
-                + "\r\n\t quickCompiledCodeSize: " + quickCompiledCodeSize
-        );
         // 获取跳转的大小
         int sizeOfDirectJump = shellCode.sizeOfDirectJump();
-        Logger.d(TAG, "install() " + originMethod.toString()
+        Logger.d(TAG, "install() " + originMethod
                 + "\r\n\tquickCompiledCodeSize: " + quickCompiledCodeSize
                 + "\r\n\tsizeOfDirectJump: " + sizeOfDirectJump
         );
