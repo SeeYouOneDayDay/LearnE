@@ -120,7 +120,7 @@ public class Offset {
         EpicNative.put(bytes, address);
     }
 
-    // @TODO 这个偏移怎么来的？ 项目legend中类HookManager中，会通过查看java文件中方法实现的
+    // @TODO 这个偏移怎么来的？ 项目legend中类Struct中，会通过查看java文件中方法实现的
     // https://cs.android.com/android/platform/superproject/+/master:art/runtime/art_method.h;l=858;drc=8cec482cda2e0e5d591d2279b441e04c2b1ccf9f;bpv=0;bpt=1
     // 通过C++ sizeof()来获取?
     // 如何调用这些接口？
