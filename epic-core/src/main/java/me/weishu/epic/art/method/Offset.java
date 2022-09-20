@@ -58,6 +58,7 @@ public class Offset {
         BitWidth(int width) {
             this.width = width;
         }
+
         int width;
     }
 
@@ -119,20 +120,20 @@ public class Offset {
         EpicNative.put(bytes, address);
     }
 
-    // @TODO 这个偏移怎么来的呀。
+    // @TODO 这个偏移怎么来的？ 项目legend中类HookManager中，会通过查看java文件中方法实现的
     // https://cs.android.com/android/platform/superproject/+/master:art/runtime/art_method.h;l=858;drc=8cec482cda2e0e5d591d2279b441e04c2b1ccf9f;bpv=0;bpt=1
-    // 通过C++ sizeof()来获取?  
+    // 通过C++ sizeof()来获取?
     // 如何调用这些接口？
     //static constexpr MemberOffset EntryPointFromJniOffset(PointerSize pointer_size) {
     //   return DataOffset(pointer_size);
     // }
-
+    //
     // static constexpr MemberOffset EntryPointFromQuickCompiledCodeOffset(PointerSize pointer_size) {
     //   return MemberOffset(PtrSizedFieldsOffset(pointer_size) + OFFSETOF_MEMBER(
     //       PtrSizedFields, entry_point_from_quick_compiled_code_) / sizeof(void*)
     //           * static_cast<size_t>(pointer_size));
     // }
-
+    //
     private static void initFields() {
         //https://cs.android.com/android/platform/superproject/+/master:art/runtime/art_method.h;drc=8cec482cda2e0e5d591d2279b441e04c2b1ccf9f;bpv=1;bpt=1;l=858?q=art_method.h&gsn=entry_point_from_quick_compiled_code_&gs=kythe:%2F%2Fandroid.googlesource.com%2Fplatform%2Fsuperproject%3Flang%3Dc%252B%252B%3Fpath%3Dart%2Fruntime%2Fart_method.h%23uELm5DDXvSbcdgzSGXlkhZeDKsoN8KtXyFyg83xiLK8
         //void* entry_point_from_quick_compiled_code_;
