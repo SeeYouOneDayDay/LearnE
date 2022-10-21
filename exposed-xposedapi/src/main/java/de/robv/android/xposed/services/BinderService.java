@@ -3,9 +3,10 @@ package de.robv.android.xposed.services;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 
 import java.io.IOException;
+
+import utils.Reflect;
 
 /** @hide */
 public final class BinderService extends BaseService {
@@ -158,7 +159,8 @@ public final class BinderService extends BaseService {
     private final IBinder mRemote;
 
     private BinderService(int target) {
-        IBinder binder = ServiceManager.getService(SERVICE_NAMES[target]);
+//        IBinder binder = ServiceManager.getService(SERVICE_NAMES[target]);
+        IBinder binder = Reflect.on("android.os.ServiceManager").call("getService",SERVICE_NAMES[target]).get();
         if (binder == null)
             throw new IllegalStateException("Service " + SERVICE_NAMES[target] + " does not exist");
         this.mRemote = binder;

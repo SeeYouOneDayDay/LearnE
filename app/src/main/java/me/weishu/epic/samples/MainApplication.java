@@ -3,7 +3,7 @@ package me.weishu.epic.samples;
 import android.app.Application;
 import android.content.Context;
 
-import uts.MinRef;
+import utils.MinRef;
 
 /**
  * Created by weishu on 17/10/31.

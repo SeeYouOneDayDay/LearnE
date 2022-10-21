@@ -21,7 +21,6 @@ package de.robv.android.xposed;
 
 import static de.robv.android.xposed.XposedHelpers.getIntField;
 
-import android.app.AndroidAppHelper;
 import android.os.Build;
 
 import java.lang.reflect.AccessibleObject;
@@ -39,15 +38,16 @@ import java.util.Set;
 import me.weishu.epic.art.Epic;
 import me.weishu.epic.art.method.ArtMethod;
 import utils.Logger;
+import utils.MinRef;
+import utils.Reflect;
 import utils.Runtime;
-import uts.MinRef;
+
 
 
 public final class DexposedBridge {
-
     static {
         try {
-            MinRef.unseal(AndroidAppHelper.currentApplication());
+            MinRef.unseal(Reflect.on("android.app.AndroidAppHelper").call("currentApplication").get());
             if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
                 System.loadLibrary("epic");
             } else if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -414,16 +414,6 @@ public final class DexposedBridge {
 //        }
 //    }
 
-    /**
-     * Intercept every call to the specified method and call a handler function instead.
-     * @param method The method to intercept
-     */
-    private native synchronized static void hookMethodNative(Member method, Class<?> declaringClass, int slot, Object additionalInfo);
-
-    private native static Object invokeOriginalMethodNative(Member method, int methodId,
-                                                            Class<?>[] parameterTypes, Class<?> returnType, Object thisObject, Object[] args)
-            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
-
 
     /**
      * Basically the same as {@link Method#invoke}, but calls the original method
@@ -523,6 +513,17 @@ public final class DexposedBridge {
             return elements;
         }
     }
+
+    /**
+     * Intercept every call to the specified method and call a handler function instead.
+     * @param method The method to intercept
+     */
+    private native synchronized static void hookMethodNative(Member method, Class<?> declaringClass, int slot, Object additionalInfo);
+
+    private native static Object invokeOriginalMethodNative(Member method, int methodId,
+                                                            Class<?>[] parameterTypes, Class<?> returnType, Object thisObject, Object[] args)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
+
 
     private static class AdditionalHookInfo {
         final CopyOnWriteSortedSet<XC_MethodHook> callbacks;

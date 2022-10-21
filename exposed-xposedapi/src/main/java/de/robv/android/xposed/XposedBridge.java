@@ -8,9 +8,6 @@ import android.content.res.TypedArray;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.android.internal.os.RuntimeInit;
-import com.android.internal.os.ZygoteInit;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.AccessibleObject;
@@ -27,7 +24,8 @@ import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
 import de.robv.android.xposed.callbacks.XC_InitPackageResources;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
-import uts.XL;
+import utils.Reflect;
+import utils.XL;
 
 /**
  * This class contains most of Xposed's central logic, such as initialization and callbacks used by
@@ -102,12 +100,32 @@ public final class XposedBridge {
             disableHooks = true;
         }
 
-        // Call the original startup code
-        if (isZygote) {
-            ZygoteInit.main(args);
+        Object[] objectArgs = null;
+        if (args.length > 0) {
+            objectArgs = new Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                objectArgs[i] = args[i];
+            }
+
+            // Call the original startup code
+            if (isZygote) {
+//            ZygoteInit.main(args);
+                Reflect.on("com.android.internal.os.ZygoteInit").call("main", objectArgs);
+            } else {
+//            RuntimeInit.main(args);
+                Reflect.on("com.android.internal.os.RuntimeInit").call("main", objectArgs);
+            }
         } else {
-            RuntimeInit.main(args);
+            // Call the original startup code
+            if (isZygote) {
+//            ZygoteInit.main(args);
+                Reflect.on("com.android.internal.os.ZygoteInit").call("main");
+            } else {
+//            RuntimeInit.main(args);
+                Reflect.on("com.android.internal.os.RuntimeInit").call("main");
+            }
         }
+
     }
 
     /** @hide */
@@ -150,18 +168,6 @@ public final class XposedBridge {
         return dexFile;
     }
 
-    private native static boolean hadInitErrors();
-
-    private static native int getRuntime();
-
-    /*package*/
-    static native boolean startsSystemServer();
-
-    /*package*/
-    static native String getStartClassName();
-
-    /*package*/
-    native static boolean initXResourcesNative();
 
     /**
      * Returns the currently installed version of the Xposed framework.
@@ -367,15 +373,6 @@ public final class XposedBridge {
         }
     }
 
-    /**
-     * Intercept every call to the specified method and call a handler function instead.
-     * @param method The method to intercept
-     */
-    private native synchronized static void hookMethodNative(Member method, Class<?> declaringClass, int slot, Object additionalInfo);
-
-    private native static Object invokeOriginalMethodNative(Member method, int methodId,
-                                                            Class<?>[] parameterTypes, Class<?> returnType, Object thisObject, Object[] args)
-            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 
     /**
      * Just for throw an checked exception without check
@@ -458,10 +455,6 @@ public final class XposedBridge {
         setObjectClassNative(obj, clazz);
     }
 
-    private static native void setObjectClassNative(Object obj, Class<?> clazz);
-
-    /*package*/
-    static native void dumpObjectNative(Object obj);
 
     /*package*/
     static Object cloneToSubclass(Object obj, Class<?> targetClazz) {
@@ -474,18 +467,7 @@ public final class XposedBridge {
         return cloneToSubclassNative(obj, targetClazz);
     }
 
-    private static native Object cloneToSubclassNative(Object obj, Class<?> targetClazz);
 
-    private static native void removeFinalFlagNative(Class<?> clazz);
-
-    /*package*/
-    static native void closeFilesBeforeForkNative();
-
-    /*package*/
-    static native void reopenFilesAfterForkNative();
-
-    /*package*/
-    static native void invalidateCallersNative(Member[] methods);
 
     /** @hide */
     public static final class CopyOnWriteSortedSet<E> {
@@ -572,4 +554,44 @@ public final class XposedBridge {
         XL.e(TAG, Log.getStackTraceString(t));
     }
 
+    private native static boolean hadInitErrors();
+
+    private static native int getRuntime();
+
+    /*package*/
+    static native boolean startsSystemServer();
+
+    /*package*/
+    static native String getStartClassName();
+
+    /*package*/
+    native static boolean initXResourcesNative();
+
+    /**
+     * Intercept every call to the specified method and call a handler function instead.
+     * @param method The method to intercept
+     */
+    private native synchronized static void hookMethodNative(Member method, Class<?> declaringClass, int slot, Object additionalInfo);
+
+    private native static Object invokeOriginalMethodNative(Member method, int methodId,
+                                                            Class<?>[] parameterTypes, Class<?> returnType, Object thisObject, Object[] args)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
+
+    private static native void setObjectClassNative(Object obj, Class<?> clazz);
+
+    /*package*/
+    static native void dumpObjectNative(Object obj);
+
+    private static native Object cloneToSubclassNative(Object obj, Class<?> targetClazz);
+
+    private static native void removeFinalFlagNative(Class<?> clazz);
+
+    /*package*/
+    static native void closeFilesBeforeForkNative();
+
+    /*package*/
+    static native void reopenFilesAfterForkNative();
+
+    /*package*/
+    static native void invalidateCallersNative(Member[] methods);
 }

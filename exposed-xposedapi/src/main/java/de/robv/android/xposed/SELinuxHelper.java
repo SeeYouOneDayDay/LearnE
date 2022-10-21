@@ -1,11 +1,10 @@
 package de.robv.android.xposed;
 
-import android.os.SELinux;
-
 import de.robv.android.xposed.services.BaseService;
 import de.robv.android.xposed.services.BinderService;
 import de.robv.android.xposed.services.DirectAccessService;
 import de.robv.android.xposed.services.ZygoteService;
+import utils.Reflect;
 
 /**
  * A helper to work with (or without) SELinux, abstracting much of its big complexity.
@@ -29,7 +28,10 @@ public final class SELinuxHelper {
      * @return A boolean indicating whether SELinux is enforcing.
      */
     public static boolean isSELinuxEnforced() {
-        return sIsSELinuxEnabled && SELinux.isSELinuxEnforced();
+
+//        return sIsSELinuxEnabled && SELinux.isSELinuxEnforced();
+        boolean isSELinuxEnforced = Reflect.on("android.os.SELinux").call("isSELinuxEnforced").get();
+        return sIsSELinuxEnabled && isSELinuxEnforced;
     }
 
     /**
@@ -38,7 +40,9 @@ public final class SELinuxHelper {
      * @return A String representing the security context of the current process.
      */
     public static String getContext() {
-        return sIsSELinuxEnabled ? SELinux.getContext() : null;
+        String context = Reflect.on("android.os.SELinux").call("getContext").get();
+//        return sIsSELinuxEnabled ? SELinux.getContext() : null;
+        return sIsSELinuxEnabled ? context : null;
     }
 
     /**
@@ -63,7 +67,9 @@ public final class SELinuxHelper {
     /*package*/
     static void initOnce() {
         try {
-            sIsSELinuxEnabled = SELinux.isSELinuxEnabled();
+//            sIsSELinuxEnabled = SELinux.isSELinuxEnabled();
+            sIsSELinuxEnabled = Reflect.on("android.os.SELinux").call("isSELinuxEnabled").get();
+            ;
         } catch (NoClassDefFoundError ignored) {
         }
     }

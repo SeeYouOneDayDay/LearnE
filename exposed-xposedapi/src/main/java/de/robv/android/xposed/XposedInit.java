@@ -18,24 +18,17 @@ import static de.robv.android.xposed.XposedHelpers.setStaticLongField;
 import static de.robv.android.xposed.XposedHelpers.setStaticObjectField;
 
 import android.annotation.SuppressLint;
-import android.app.ActivityThread;
-import android.app.AndroidAppHelper;
 import android.app.Application;
-import android.app.LoadedApk;
 import android.content.ComponentName;
 import android.content.pm.ApplicationInfo;
-import android.content.res.CompatibilityInfo;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.content.res.XResources;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.android.internal.os.ZygoteInit;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -59,6 +52,8 @@ import de.robv.android.xposed.callbacks.XC_InitPackageResources;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import de.robv.android.xposed.callbacks.XCallback;
 import de.robv.android.xposed.services.BaseService;
+import utils.Reflect;
+import utils.Subclass;
 
 /*package*/ final class XposedInit {
     private static final String TAG = XposedBridge.TAG;
@@ -104,41 +99,49 @@ import de.robv.android.xposed.services.BaseService;
 
         final HashSet<String> loadedPackagesInProcess = new HashSet<>(1);
 
+
         // normal process initialization (for new Activity, Service, BroadcastReceiver etc.)
-        findAndHookMethod(ActivityThread.class, "handleBindApplication", "android.app.ActivityThread.AppBindData", new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                ActivityThread activityThread = (ActivityThread) param.thisObject;
-                ApplicationInfo appInfo = (ApplicationInfo) getObjectField(param.args[0], "appInfo");
-                String reportedPackageName = appInfo.packageName.equals("android") ? "system" : appInfo.packageName;
-                SELinuxHelper.initForProcess(reportedPackageName);
-                ComponentName instrumentationName = (ComponentName) getObjectField(param.args[0], "instrumentationName");
-                if (instrumentationName != null) {
-                    Log.w(TAG, "Instrumentation detected, disabling framework for " + reportedPackageName);
-                    XposedBridge.disableHooks = true;
-                    return;
-                }
-                CompatibilityInfo compatInfo = (CompatibilityInfo) getObjectField(param.args[0], "compatInfo");
-                if (appInfo.sourceDir == null)
-                    return;
+        findAndHookMethod(Reflect.findClass("android.app.ActivityThread")
+                , "handleBindApplication", "android.app.ActivityThread.AppBindData"
+                , new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        Object activityThread = param.thisObject;
+                        ApplicationInfo appInfo = (ApplicationInfo) getObjectField(param.args[0], "appInfo");
+                        String reportedPackageName = appInfo.packageName.equals("android") ? "system" : appInfo.packageName;
+                        SELinuxHelper.initForProcess(reportedPackageName);
+                        ComponentName instrumentationName = (ComponentName) getObjectField(param.args[0], "instrumentationName");
+                        if (instrumentationName != null) {
+                            Log.w(TAG, "Instrumentation detected, disabling framework for " + reportedPackageName);
+                            XposedBridge.disableHooks = true;
+                            return;
+                        }
+                        Object compatInfo = getObjectField(param.args[0], "compatInfo");
+                        if (appInfo.sourceDir == null)
+                            return;
 
-                setObjectField(activityThread, "mBoundApplication", param.args[0]);
-                loadedPackagesInProcess.add(reportedPackageName);
-                LoadedApk loadedApk = activityThread.getPackageInfoNoCheck(appInfo, compatInfo);
-                XResources.setPackageNameForResDir(appInfo.packageName, loadedApk.getResDir());
+                        setObjectField(activityThread, "mBoundApplication", param.args[0]);
+                        loadedPackagesInProcess.add(reportedPackageName);
 
-                XC_LoadPackage.LoadPackageParam lpparam = new XC_LoadPackage.LoadPackageParam(XposedBridge.sLoadedPackageCallbacks);
-                lpparam.packageName = reportedPackageName;
-                lpparam.processName = (String) getObjectField(param.args[0], "processName");
-                lpparam.classLoader = loadedApk.getClassLoader();
-                lpparam.appInfo = appInfo;
-                lpparam.isFirstApplication = true;
-                XC_LoadPackage.callAll(lpparam);
+//                LoadedApk loadedApk = activityThread.getPackageInfoNoCheck(appInfo, compatInfo);
+//                XResources.setPackageNameForResDir(appInfo.packageName, loadedApk.getResDir());
+                        Object loadedApk = Reflect.on(activityThread).call("getPackageInfoNoCheck", appInfo, compatInfo).get();
+                        Reflect.on("android.content.res.XResources").call("setPackageNameForResDir", appInfo.packageName
+                                , Reflect.on(loadedApk).call("getResDir").get());
 
-                if (reportedPackageName.equals(INSTALLER_PACKAGE_NAME))
-                    hookXposedInstaller(lpparam.classLoader);
-            }
-        });
+                        XC_LoadPackage.LoadPackageParam lpparam = new XC_LoadPackage.LoadPackageParam(XposedBridge.sLoadedPackageCallbacks);
+                        lpparam.packageName = reportedPackageName;
+                        lpparam.processName = (String) getObjectField(param.args[0], "processName");
+//                        lpparam.classLoader = loadedApk.getClassLoader();
+                        lpparam.classLoader = Reflect.on(loadedApk).call("getClassLoader").get();
+                        lpparam.appInfo = appInfo;
+                        lpparam.isFirstApplication = true;
+                        XC_LoadPackage.callAll(lpparam);
+
+                        if (reportedPackageName.equals(INSTALLER_PACKAGE_NAME))
+                            hookXposedInstaller(lpparam.classLoader);
+                    }
+                });
 
         // system_server initialization
         if (Build.VERSION.SDK_INT < 21) {
@@ -159,49 +162,54 @@ import de.robv.android.xposed.services.BaseService;
                         }
                     });
         } else if (startsSystemServer) {
-            findAndHookMethod(ActivityThread.class, "systemMain", new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                    findAndHookMethod("com.android.server.SystemServer", cl, "startBootstrapServices", new XC_MethodHook() {
+            findAndHookMethod(Reflect.findClass("android.app.ActivityThread"), "systemMain"
+                    , new XC_MethodHook() {
                         @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            SELinuxHelper.initForProcess("android");
-                            loadedPackagesInProcess.add("android");
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                            findAndHookMethod("com.android.server.SystemServer", cl, "startBootstrapServices", new XC_MethodHook() {
+                                @Override
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                    SELinuxHelper.initForProcess("android");
+                                    loadedPackagesInProcess.add("android");
 
-                            XC_LoadPackage.LoadPackageParam lpparam = new XC_LoadPackage.LoadPackageParam(XposedBridge.sLoadedPackageCallbacks);
-                            lpparam.packageName = "android";
-                            lpparam.processName = "android"; // it's actually system_server, but other functions return this as well
-                            lpparam.classLoader = cl;
-                            lpparam.appInfo = null;
-                            lpparam.isFirstApplication = true;
-                            XC_LoadPackage.callAll(lpparam);
+                                    XC_LoadPackage.LoadPackageParam lpparam = new XC_LoadPackage.LoadPackageParam(XposedBridge.sLoadedPackageCallbacks);
+                                    lpparam.packageName = "android";
+                                    lpparam.processName = "android"; // it's actually system_server, but other functions return this as well
+                                    lpparam.classLoader = cl;
+                                    lpparam.appInfo = null;
+                                    lpparam.isFirstApplication = true;
+                                    XC_LoadPackage.callAll(lpparam);
 
-                            // Huawei
-                            try {
-                                findAndHookMethod("com.android.server.pm.HwPackageManagerService", cl, "isOdexMode", XC_MethodReplacement.returnConstant(false));
-                            } catch (XposedHelpers.ClassNotFoundError | NoSuchMethodError ignored) {
-                            }
+                                    // Huawei
+                                    try {
+                                        findAndHookMethod("com.android.server.pm.HwPackageManagerService", cl, "isOdexMode", XC_MethodReplacement.returnConstant(false));
+                                    } catch (XposedHelpers.ClassNotFoundError | NoSuchMethodError ignored) {
+                                    }
 
-                            try {
-                                String className = "com.android.server.pm." + (Build.VERSION.SDK_INT >= 23 ? "PackageDexOptimizer" : "PackageManagerService");
-                                findAndHookMethod(className, cl, "dexEntryExists", String.class, XC_MethodReplacement.returnConstant(true));
-                            } catch (XposedHelpers.ClassNotFoundError | NoSuchMethodError ignored) {
-                            }
+                                    try {
+                                        String className = "com.android.server.pm." + (Build.VERSION.SDK_INT >= 23 ? "PackageDexOptimizer" : "PackageManagerService");
+                                        findAndHookMethod(className, cl, "dexEntryExists", String.class, XC_MethodReplacement.returnConstant(true));
+                                    } catch (XposedHelpers.ClassNotFoundError | NoSuchMethodError ignored) {
+                                    }
+                                }
+                            });
                         }
                     });
-                }
-            });
         }
 
         // when a package is loaded for an existing process, trigger the callbacks as well
-        hookAllConstructors(LoadedApk.class, new XC_MethodHook() {
+        hookAllConstructors(Reflect.findClass("android.app.LoadedApk"), new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                LoadedApk loadedApk = (LoadedApk) param.thisObject;
+                Object loadedApk = param.thisObject;
 
-                String packageName = loadedApk.getPackageName();
-                XResources.setPackageNameForResDir(packageName, loadedApk.getResDir());
+
+//                String packageName = loadedApk.getPackageName();
+//                XResources.setPackageNameForResDir(packageName, loadedApk.getResDir());
+                String packageName = Reflect.on(loadedApk).call("getPackageName").get();
+                Reflect.on("android.content.res.XResources").call("setPackageNameForResDir", packageName
+                        , Reflect.on(loadedApk).call("getResDir").get());
                 if (packageName.equals("android") || !loadedPackagesInProcess.add(packageName))
                     return;
 
@@ -210,9 +218,13 @@ import de.robv.android.xposed.services.BaseService;
 
                 XC_LoadPackage.LoadPackageParam lpparam = new XC_LoadPackage.LoadPackageParam(XposedBridge.sLoadedPackageCallbacks);
                 lpparam.packageName = packageName;
-                lpparam.processName = AndroidAppHelper.currentProcessName();
-                lpparam.classLoader = loadedApk.getClassLoader();
-                lpparam.appInfo = loadedApk.getApplicationInfo();
+//                lpparam.processName = AndroidAppHelper.currentProcessName();
+//                lpparam.classLoader = loadedApk.getClassLoader();
+//                lpparam.appInfo = loadedApk.getApplicationInfo();
+
+                lpparam.processName = Reflect.on("android.app.AndroidAppHelper").call("currentProcessName").get();
+                lpparam.classLoader = Reflect.on(loadedApk).call("getClassLoader").get();
+                lpparam.appInfo = Reflect.on(loadedApk).call("getApplicationInfo").get();
                 lpparam.isFirstApplication = false;
                 XC_LoadPackage.callAll(lpparam);
             }
@@ -223,14 +235,20 @@ import de.robv.android.xposed.services.BaseService;
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         ApplicationInfo app = (ApplicationInfo) param.args[0];
-                        XResources.setPackageNameForResDir(app.packageName,
+//                        XResources.setPackageNameForResDir(app.packageName,
+//                                app.uid == Process.myUid() ? app.sourceDir : app.publicSourceDir);
+
+                        Reflect.on("android.content.res.XResources").call("setPackageNameForResDir", app.packageName,
                                 app.uid == Process.myUid() ? app.sourceDir : app.publicSourceDir);
                     }
                 });
 
         // MIUI
-        if (findFieldIfExists(ZygoteInit.class, "BOOT_START_TIME") != null) {
-            setStaticLongField(ZygoteInit.class, "BOOT_START_TIME", XposedBridge.BOOT_START_TIME);
+//        if (findFieldIfExists(ZygoteInit.class, "BOOT_START_TIME") != null) {
+//            setStaticLongField(ZygoteInit.class, "BOOT_START_TIME", XposedBridge.BOOT_START_TIME);
+//        }
+        if (findFieldIfExists(Reflect.findClass("com.android.internal.os.ZygoteInit"), "BOOT_START_TIME") != null) {
+            setStaticLongField(Reflect.findClass("com.android.internal.os.ZygoteInit"), "BOOT_START_TIME", XposedBridge.BOOT_START_TIME);
         }
 
         // Samsung
@@ -271,11 +289,11 @@ import de.robv.android.xposed.services.BaseService;
         final ThreadLocal<Object> latestResKey = new ThreadLocal<>();
 
         if (Build.VERSION.SDK_INT <= 18) {
-            classGTLR = ActivityThread.class;
-            classResKey = Class.forName("android.app.ActivityThread$ResourcesKey");
+            classGTLR = Reflect.findClass("android.app.ActivityThread");
+            classResKey = Reflect.findClass("android.app.ActivityThread$ResourcesKey");
         } else {
-            classGTLR = Class.forName("android.app.ResourcesManager");
-            classResKey = Class.forName("android.content.res.ResourcesKey");
+            classGTLR = Reflect.findClass("android.app.ResourcesManager");
+            classResKey = Reflect.findClass("android.content.res.ResourcesKey");
         }
 
         if (Build.VERSION.SDK_INT >= 24) {
@@ -287,7 +305,8 @@ import de.robv.android.xposed.services.BaseService;
                     final int resKeyIdx = getParameterIndexByType(param.method, classResKey);
 
                     String resDir = (String) getObjectField(param.args[resKeyIdx], "mResDir");
-                    XResources newRes = cloneToXResources(param, resDir);
+//                    XResources newRes = cloneToXResources(param, resDir);
+                    Object newRes = cloneToXResources(param, resDir);
                     if (newRes == null) {
                         return;
                     }
@@ -328,7 +347,8 @@ import de.robv.android.xposed.services.BaseService;
                     latestResKey.set(null);
 
                     String resDir = (String) getObjectField(key, "mResDir");
-                    XResources newRes = cloneToXResources(param, resDir);
+//                    XResources newRes = cloneToXResources(param, resDir);
+                    Object newRes = cloneToXResources(param, resDir);
                     if (newRes == null) {
                         return;
                     }
@@ -340,8 +360,10 @@ import de.robv.android.xposed.services.BaseService;
                             ? getObjectField(param.thisObject, "mPackages") : param.thisObject;
 
                     synchronized (lockObject) {
-                        WeakReference<Resources> existing = mActiveResources.put(key, new WeakReference<Resources>(newRes));
-                        if (existing != null && existing.get() != null && existing.get().getAssets() != newRes.getAssets()) {
+                        Resources re = (Resources) newRes;
+                        WeakReference<Resources> existing = mActiveResources.put(key, new WeakReference<Resources>(re));
+//                        if (existing != null && existing.get() != null && existing.get().getAssets() != newRes.getAssets()) {
+                        if (existing != null && existing.get() != null && existing.get().getAssets() != Reflect.on(newRes).call("getAssets").get()) {
                             existing.get().getAssets().close();
                         }
                     }
@@ -373,35 +395,54 @@ import de.robv.android.xposed.services.BaseService;
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 TypedArray typedArray = (TypedArray) param.thisObject;
                 Resources res = typedArray.getResources();
-                if (res instanceof XResources) {
-//                    XposedBridge.setObjectClass(typedArray, XResources.XTypedArray.class);
+//                if (res instanceof XResources) {
+////                    XposedBridge.setObjectClass(typedArray, XResources.XTypedArray.class);
+//                    XposedBridge.setObjectClass(typedArray, XposedHelpers.findClass("android.content.res.XResources$XTypedArray", null));
+//                }
+                if (Subclass.isSubClass(res, "android.content.res.XResources")) {
                     XposedBridge.setObjectClass(typedArray, XposedHelpers.findClass("android.content.res.XResources$XTypedArray", null));
                 }
             }
         });
 
         // Replace system resources
-        XResources systemRes = (XResources) XposedBridge.cloneToSubclass(Resources.getSystem(), XResources.class);
-        systemRes.initObject(null);
+        Object systemRes = XposedBridge.cloneToSubclass(Resources.getSystem(), Reflect.findClass("android.content.res.XResources"));
+//        systemRes.initObject(null);
+        Reflect.on(systemRes).call("initObject", (String) null);
         setStaticObjectField(Resources.class, "mSystem", systemRes);
 
-        XResources.init(latestResKey);
+//        XResources.init(latestResKey);
+        Reflect.on("android.content.res.XResources").call("init", latestResKey);
     }
 
-    private static XResources cloneToXResources(XC_MethodHook.MethodHookParam param, String resDir) {
+    private static Object cloneToXResources(XC_MethodHook.MethodHookParam param, String resDir) {
         Object result = param.getResult();
-        if (result == null || result instanceof XResources ||
-                Arrays.binarySearch(XRESOURCES_CONFLICTING_PACKAGES, AndroidAppHelper.currentPackageName()) == 0) {
+//        if (result == null || result instanceof XResources ||
+//                Arrays.binarySearch(XRESOURCES_CONFLICTING_PACKAGES, AndroidAppHelper.currentPackageName()) == 0) {
+//            return null;
+//        }
+        if (result == null
+                || Subclass.isSubClass(result, "android.content.res.XResources")
+                || Arrays.binarySearch(XRESOURCES_CONFLICTING_PACKAGES, Reflect.on("android.app.AndroidAppHelper").call("currentPackageName").get()) == 0) {
             return null;
         }
 
         // Replace the returned resources with our subclass.
-        XResources newRes = (XResources) XposedBridge.cloneToSubclass(result, XResources.class);
-        newRes.initObject(resDir);
+        Object newRes = XposedBridge.cloneToSubclass(result, Reflect.findClass("android.content.res.XResources"));
+//        newRes.initObject(resDir);
+        Reflect.on(newRes).call("initObject", resDir);
 
-        // Invoke handleInitPackageResources().
-        if (newRes.isFirstLoad()) {
-            String packageName = newRes.getPackageName();
+//        // Invoke handleInitPackageResources().
+//        if (newRes.isFirstLoad()) {
+//            String packageName = newRes.getPackageName();
+//            XC_InitPackageResources.InitPackageResourcesParam resparam = new XC_InitPackageResources.InitPackageResourcesParam(XposedBridge.sInitPackageResourcesCallbacks);
+//            resparam.packageName = packageName;
+//            resparam.res = newRes;
+//            XCallback.callAll(resparam);
+//        }
+
+        if (Reflect.on(newRes).call("isFirstLoad").get()) {
+            String packageName = Reflect.on(newRes).call("getPackageName").get();
             XC_InitPackageResources.InitPackageResourcesParam resparam = new XC_InitPackageResources.InitPackageResourcesParam(XposedBridge.sInitPackageResourcesCallbacks);
             resparam.packageName = packageName;
             resparam.res = newRes;

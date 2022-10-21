@@ -30,9 +30,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexFile;
-import uts.ClassUtils;
-import uts.MemberUtils;
-import uts.XL;
+import utils.ClassUtils;
+import utils.MemberUtils;
+import utils.XL;
 
 /**
  * Helpers that simplify hooking and calling methods/constructors, getting and settings fields, ...
@@ -328,7 +328,7 @@ public final class XposedHelpers {
      * <p>This variant requires that you already have reference to all the parameter types.
      */
     public static Method findMethodExact(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
-        XL.d("XposedHelpers", "inside findMethodExact "+clazz.getName()+"."+methodName);
+        XL.d("XposedHelpers", "inside findMethodExact " + clazz.getName() + "." + methodName);
 
         String fullMethodName = clazz.getName() + '#' + methodName + getParametersString(parameterTypes) + "#exact";
 

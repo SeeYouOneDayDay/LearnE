@@ -63,5 +63,5 @@ tasks.withType(Javadoc) {
 }
 
 dependencies {
-    api project(path: ':hiddenapistubs')
+//    api project(path: ':hiddenapistubs')
 }

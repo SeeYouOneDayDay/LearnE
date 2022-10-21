@@ -1,13 +1,12 @@
 package de.robv.android.xposed.callbacks;
 
-import android.content.res.XResources;
-import android.content.res.XResources.ResourceNames;
 import android.view.View;
 
 import de.robv.android.xposed.XposedBridge.CopyOnWriteSortedSet;
+import utils.Reflect;
 
 /**
- * Callback for hooking layouts. Such callbacks can be passed to {@link XResources#hookLayout}
+ * Callback for hooking layouts. Such callbacks can be passed to {link XResources#hookLayout}
  * and its variants.
  */
 public abstract class XC_LayoutInflated extends XCallback {
@@ -40,14 +39,14 @@ public abstract class XC_LayoutInflated extends XCallback {
         /** The view that has been created from the layout. */
         public View view;
 
-        /** Container with the ID and name of the underlying resource. */
-        public ResourceNames resNames;
+//        /** Container with the ID and name of the underlying resource. */
+//        public ResourceNames resNames;
 
         /** Directory from which the layout was actually loaded (e.g. "layout-sw600dp"). */
         public String variant;
 
-        /** Resources containing the layout. */
-        public XResources res;
+//        /** Resources containing the layout. */
+//        public XResources res;
     }
 
     /** @hide */
@@ -92,7 +91,8 @@ public abstract class XC_LayoutInflated extends XCallback {
 
         @Override
         public void unhook() {
-            XResources.unhookLayout(resDir, id, XC_LayoutInflated.this);
+//            XResources.unhookLayout(resDir, id, XC_LayoutInflated.this);
+            Reflect.on("android.content.res.XResources").call("unhookLayout", resDir, id, XC_LayoutInflated.this).get();
         }
 
     }

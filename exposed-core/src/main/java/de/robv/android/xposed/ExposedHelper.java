@@ -2,7 +2,7 @@ package de.robv.android.xposed;
 
 import java.lang.reflect.Member;
 
-import uts.XL;
+import utils.XL;
 
 /**
  * Created by weishu on 17/11/30.
@@ -25,7 +25,7 @@ public class ExposedHelper {
 
 
     public static XC_MethodHook.Unhook newUnHook(XC_MethodHook methodHook, Member member) {
-        // @TODO by sanbo. 这是什么写法
+        // @TODO by sanbo. 这是什么写法   实例化内部类
         return methodHook.new Unhook(member);
     }
 

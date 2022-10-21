@@ -7,10 +7,6 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.android.internal.util.XmlUtils;
-
-import org.xmlpull.v1.XmlPullParserException;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 
 import de.robv.android.xposed.services.FileResult;
+import utils.Reflect;
+import utils.XL;
 
 /**
  * This class is basically the same as SharedPreferencesImpl from AOSP, but
@@ -140,18 +138,15 @@ public final class XSharedPreferences implements SharedPreferences {
         try {
             result = SELinuxHelper.getAppDataFileService().getFileInputStream(mFilename, mFileSize, mLastModified);
             if (result.stream != null) {
-                map = XmlUtils.readMapXml(result.stream);
+//                map = XmlUtils.readMapXml(result.stream);
+                map = Reflect.on("com.android.internal.util.XmlUtils").call("readMapXml", result.stream).get();
                 result.stream.close();
             } else {
                 // The file is unchanged, keep the current values
                 map = mMap;
             }
-        } catch (XmlPullParserException e) {
-            Log.w(TAG, "getSharedPreferences", e);
-        } catch (FileNotFoundException ignored) {
-            // SharedPreferencesImpl has a canRead() check, so it doesn't log anything in case the file doesn't exist
-        } catch (IOException e) {
-            Log.w(TAG, "getSharedPreferences", e);
+        } catch (Throwable e) {
+            XL.w(TAG, "getSharedPreferences", e);
         } finally {
             if (result != null && result.stream != null) {
                 try {
